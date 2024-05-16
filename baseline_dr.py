@@ -54,7 +54,7 @@ def up_mainfig_emb(
         autosize=False,
     )
 
-    print('start----------')
+    logging.debug('start----------')
     fig = go.Figure(layout=layout)
     # color_set_list = list(set(color.tolist()))
     # for c in color_set_list:
@@ -87,7 +87,7 @@ def up_mainfig_emb(
     )
     fig.write_image(img_path, scale=3)
     wandb.save(img_path)
-    print('emd----------')
+    logging.debug('emd----------')
 
     return fig
 

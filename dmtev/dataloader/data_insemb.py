@@ -9,7 +9,7 @@ from sklearn.decomposition import PCA
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 import torch
-from dataloader.data_sourse import DigitsDataset
+from .data_sourse import DigitsDataset
 
 class InsEmb_Car2Dataset(DigitsDataset):
     def __init__(self, data_name="InsEmb_Car2", train=True, datapath="~/data"):
@@ -53,7 +53,7 @@ class InsEmb_TPD_867Dataset(DigitsDataset):
     def Splitdata(self, patient_all, label_all, protein_all, set_all, splitstr):
 
         choose_bool = [True if set_item == splitstr else False for set_item in set_all]
-        # print(choose_bool)
+        # logging.debug(choose_bool)
         
         patient_new = []
         label_new = []
@@ -105,7 +105,7 @@ class InsEmb_TPD_579Dataset(DigitsDataset):
     def Splitdata(self, patient_all, label_all, protein_all, set_all, splitstr):
 
         choose_bool = [True if set_item == splitstr else False for set_item in set_all]
-        # print(choose_bool)
+        # logging.debug(choose_bool)
         
         patient_new = []
         label_new = []
@@ -158,7 +158,7 @@ class InsEmb_TPD_579_ALL_PRODataset(DigitsDataset):
     def Splitdata(self, patient_all, label_all, protein_all, set_all, splitstr):
 
         choose_bool = [True if set_item == splitstr else False for set_item in set_all]
-        # print(choose_bool)
+        # logging.debug(choose_bool)
         
         patient_new = []
         label_new = []
@@ -213,7 +213,7 @@ class InsEmb_TPD_579_ALL_PRO5CDataset(DigitsDataset):
     def Splitdata(self, patient_all, label_all, protein_all, set_all, splitstr):
 
         choose_bool = [True if set_item == splitstr else False for set_item in set_all]
-        # print(choose_bool)
+        # logging.debug(choose_bool)
         
         patient_new = []
         label_new = []

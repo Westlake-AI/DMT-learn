@@ -16,7 +16,7 @@ import scipy.sparse as sp
 
 import pickle as pkl
 
-from dataloader.data_sourse import DigitsDataset
+from .data_sourse import DigitsDataset
 
 
 class GRAPH_CORADataset(DigitsDataset):
@@ -70,8 +70,8 @@ class GRAPH_CORADataset(DigitsDataset):
                 repeat_nodeindex = graph[i]*100
             else:
                 repeat_nodeindex = [i]*100
-            # print(i)
-            # print(repeat_nodeindex)
+            # logging.debug(i)
+            # logging.debug(repeat_nodeindex)
             graph_eq[i,:] = np.concatenate(
                 [
                     np.array([i]),

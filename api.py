@@ -12,15 +12,13 @@ from torch import nn
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader
 from torchvision import transforms
-
-import dmtev.eval.eval_core as ec
-import dmtev.eval.eval_core_base as ecb
-import dmtev.Loss.dmt_loss_aug2 as dmt_loss_aug
+import logging
 
 # import Loss.dmt_loss_aug as dmt_loss_aug1
 from dmtev.aug.aug import aug_near_feautee_change, aug_near_mix, aug_randn
 from dmtev.dataloader import data_base
 from dmtev.model.model import NN_FCBNRL_MM
+import dmtev.Loss.dmt_loss_aug2 as dmt_loss_aug
 
 torch.set_num_threads(2)
 
@@ -50,10 +48,7 @@ class LitPatNN(LightningModule):
         self.aim_cluster = None
         self.importance = None
         self.setup()
-        if args.wandb:
-            self.wandb_logs = {}
         self.mse = torch.nn.CrossEntropyLoss()
-        
 
         self.hparams.num_pat = min(self.data_train.data.shape[1], self.hparams.num_pat)
 
@@ -218,58 +213,16 @@ class LitPatNN(LightningModule):
             have_the_label_info = (label.max() != label.min())
             
             if self.alpha is not None and N_Feature <= self.hparams.num_fea_aim and have_the_label_info:
-                ecb_e_train = ecb.Eval(input=data, latent=ins_emb, label=label, k=10)
                 data_test = self.data_test.data
                 label_test = self.data_test.label
                 _, _, lat_test = self(data_test)
-                ecb_e_test = ecb.Eval(
-                    input=gpu2np(data_test),
-                    latent=gpu2np(lat_test),
-                    label=gpu2np(label_test),
-                    k=10,
-                )
-
-                if args.wandb:
-                    self.wandb_logs.update(
-                        {
-                            "epoch": self.current_epoch,
-                            "alpha": self.alpha,
-                            "metric/#link": N_link,
-                            "metric/#Feature": N_Feature,
-                            "SVC_train": ecb_e_train.E_Classifacation_SVC(),  # SVC= ecb_e.E_Classifacation_SVC(),
-                            "SVC_test": ecb_e_test.E_Classifacation_SVC(),  # SVC= ecb_e.E_Classifacation_SVC(),
-                            "main_easy/fig_easy": self.up_mainfig_emb(data, ins_emb, label, index, mask=gpu2np(self.mask))
-                        }
-                    )
-
-                ec.ShowEmb(ins_emb, self.data_train.labelstr, index)
-            else:
-                if args.wandb:
-                    self.wandb_logs.update(
-                        {
-                            "epoch": self.current_epoch,
-                            "alpha": self.alpha,
-                            "metric/#link": N_link,
-                            "metric/#Feature": N_Feature,
-                            "main_easy/fig_easy": self.up_mainfig_emb(data, ins_emb, label, index, mask=gpu2np(self.mask))
-                        }
-                    )
-
-            if self.hparams.save_checkpoint:
-                np.save(
-                    "save_checkpoint/"
-                    + self.hparams.data_name
-                    + "={}".format(self.current_epoch),
-                    gpu2np(self.PM_root.weight.data),
-                )
+                
 
             if N_Feature <= self.hparams.num_fea_aim:
                 self.stop = True
             else:
                 self.stop = False
 
-            if args.wandb and self.wandb_logs is not None:
-                wandb.log(self.wandb_logs)
 
         else:
             self.log("SVC", 0)
@@ -467,18 +420,6 @@ def main(args):
 
     pl.utilities.seed.seed_everything(1)
     info = [str(s) for s in sys.argv[1:]]
-    runname = "_".join(["dmt", args.data_name, "".join(info)])
-    callbacks_list = []
-
-    if args.wandb:
-        wandb.init(
-            name=runname,
-            project="EVNet" + args.project_name,
-            entity="zangzelin",
-            mode="offline" if bool(args.offline) else "online",
-            save_code=True,
-            config=args,
-        )
 
     model = LitPatNN(dataname=args.data_name,**args.__dict__,)
 
@@ -550,11 +491,9 @@ if __name__ == "__main__":
             "E1",
         ],
     )
-    parser.add_argument("--offline", type=int, default=0)
     parser.add_argument("--seed", type=int, default=1, metavar="S")
     parser.add_argument("--data_path", type=str, default="data/niu")
     parser.add_argument("--log_interval", type=int, default=300)
-    parser.add_argument("--project_name", type=str, default="test")
     parser.add_argument(
         "--computer", type=str,
         default=os.popen("git config user.name").read()[:-1]
@@ -577,7 +516,6 @@ if __name__ == "__main__":
     # parser.add_argument("--num_fea_aim", type=int, default=128)
     parser.add_argument("--num_fea_aim", type=int, default=50)
     parser.add_argument("--K_plot", type=int, default=40)
-    parser.add_argument("--save_checkpoint", type=int, default=0)
 
     parser.add_argument("--num_fea_per_pat", type=int, default=80)  # 0.5
     # parser.add_argument("--K", type=int, default=3)
@@ -611,6 +549,5 @@ if __name__ == "__main__":
     args = pl.Trainer.add_argparse_args(parser)
     args = args.parse_args()
 
-    if args.wandb:
-        import wandb
+    logging.getLogger().setLevel(logging.INFO)
     main(args)

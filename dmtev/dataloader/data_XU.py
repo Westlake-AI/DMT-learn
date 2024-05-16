@@ -16,7 +16,7 @@ import scipy.sparse as sp
 
 import pickle as pkl
 
-from dataloader.data_sourse import DigitsDataset
+from .data_sourse import DigitsDataset
 
 
 class CSVDataset(DigitsDataset):

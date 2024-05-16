@@ -42,15 +42,15 @@ class Source(nn.Module):
             self.epsilon = epsilon
             self.K = None
             self.Neighbor = self.Epsilonball
-            print("use Epsilonball")
+            logging.debug("use Epsilonball")
         else:
             self.K = K
             self.epsilon = None
             self.Neighbor = self.KNNGraph
-            print("use KNNGraph")
+            logging.debug("use KNNGraph")
 
     def forward(self, input_data, latent_data, dis_data, kNN_data):
-        # print(kNN_data.sum())
+        # logging.debug(kNN_data.sum())
         dis_latent, kNN_latent = self.Neighbor(
             latent_data,
         )
@@ -69,7 +69,7 @@ class Source(nn.Module):
             rate_push=self.rate_push,
         )
 
-        # print(loss_push_away)
+        # logging.debug(loss_push_away)
         return loss_iso + loss_push_away
 
     def KNNGraph(self, data, k=15):

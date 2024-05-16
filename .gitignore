@@ -1,7 +1,7 @@
 lightning_logs/
 __pycache__/
 wandb/*
-save_near_index/*
+save_near_index/
 baseline/Concrete_Autoencoders/experiments/scikit-feature-1.0.0/*
 baseline/FAE/log/*
 baseline/FAE/FAE.ipynb

@@ -1,20 +1,19 @@
-from torch.utils import data
-from sklearn.datasets import load_digits
 from torch import tensor
+from torch.utils import data
 import torchvision.datasets as datasets
+from sklearn.datasets import load_digits
 from pynndescent import NNDescent
+import logging
 import os
 import joblib
 import torch
 import numpy as np
-from PIL import Image
-import scanpy as sc
 import scipy
 from sklearn.decomposition import PCA
-import pandas as pd
 # import PoolRunner
-import dataloader.cal_sigma as cal_sigma
 from sklearn.metrics import pairwise_distances
+
+from . import cal_sigma as cal_sigma
 
 
 class DigitsDataset(data.Dataset):
@@ -58,9 +57,9 @@ class DigitsDataset(data.Dataset):
                 neighbors_index = dis.argsort(axis=1)[:, 1:k+1]
             joblib.dump(value=neighbors_index, filename=filename)
 
-            print("save data to ", filename)
+            logging.debug("save data to ", filename)
         else:
-            print("load data from ", filename)
+            logging.debug("load data from ", filename)
             neighbors_index = joblib.load(filename)
         # import pdb; pdb.set_trace()
         self.neighbors_index = tensor(neighbors_index).to(device)
@@ -78,7 +77,7 @@ class DigitsDataset(data.Dataset):
         else:
             self.data = data[rand_perm[split_index:]]
             self.label = label[rand_perm[split_index:]]
-        print("train: {} size {}".format(train, self.data.shape))
+        logging.debug("train: {} size {}".format(train, self.data.shape))
 
     def to_device(self, device):
         self.labelstr = [[str(int(i)) for i in self.label]]
@@ -111,13 +110,13 @@ class DigitsDataset(data.Dataset):
 
     def get_sigma_rho(self, X, perplexity, v_input, K=500):
 
-        print('use kNN mehtod to find the sigma')
+        logging.debug('use kNN mehtod to find the sigma')
 
         X_rshaped = X.reshape((X.shape[0],-1))
 
         if X_rshaped.shape[1] > 100:
             X_rshaped = PCA(n_components=50).fit_transform(X_rshaped)
-            print('--------------->PCA', X_rshaped.shape)
+            logging.debug('--------------->PCA', X_rshaped.shape)
 
         # index = NNDescent(X_rshaped, n_jobs=-1,)
         # neighbors_index, neighbors_dist = index.query(X_rshaped, k=K )
@@ -144,11 +143,11 @@ class DigitsDataset(data.Dataset):
         sigma = np.array(r.Getout())
 
         std_dis = np.std(rho) / np.sqrt(X.shape[1])
-        print('sigma', sigma)
-        print('sigma max', np.max(sigma))
+        logging.debug('sigma', sigma)
+        logging.debug('sigma max', np.max(sigma))
         # if std_dis < 0.20 or self.same_sigma is True:
         #     # sigma[:] = sigma.mean() * 5
         #     sigma[:] = sigma.mean()
-        # print('sigma', sigma)
+        # logging.debug('sigma', sigma)
         return rho, sigma
 

@@ -22,16 +22,16 @@ class PoolRunner(object):
                 pool.apply_async(sigma_binary_search,
                                  (perplexity, dist[dist_row], rho[dist_row],
                                   gamma, v, pow, func_new)))
-        print('start calculate sigma')
+        logging.debug('start calculate sigma')
         pool.close()
         pool.join()
         sigma_array = []
         for i in result:
             sigma_array.append(i.get())
         self.sigma_array = np.array(sigma_array)
-        print("\nMean sigma = " + str(np.mean(sigma_array)))
-        print('finish calculate sigma')
-        # print(self.sigma_array)
+        logging.debug("\nMean sigma = " + str(np.mean(sigma_array)))
+        logging.debug('finish calculate sigma')
+        # logging.debug(self.sigma_array)
         # input()
 
     def Getout(self, ):

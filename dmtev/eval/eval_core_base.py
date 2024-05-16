@@ -65,7 +65,7 @@ class Eval():
         #     index = random.sample(range(n), 10000)
         #     self.k = k
         #     # self.k = int(k * 5000/n)
-        #     # print('down sampling')
+        #     # logging.debug('down sampling')
         # else:
         index = range(n)
         self.k = k
@@ -74,14 +74,14 @@ class Eval():
         self.label = label[index]
         self.cuda = cuda
         
-        # print('distance_input')
+        # logging.debug('distance_input')
         # self.distance_input = self._Distance_squared_CPU(self.input, self.input)
-        # print('distance_latnet')
+        # logging.debug('distance_latnet')
         # self.distance_latnet = self._Distance_squared_CPU(self.latent, self.latent)
-        # # print('neighbour_input')
+        # # logging.debug('neighbour_input')
         # self.neighbour_input, self.rank_input = self._neighbours_and_ranks(
         #     self.distance_input)
-        # # print('neighbour_latent')
+        # # logging.debug('neighbour_latent')
         # self.neighbour_latent, self.rank_latent = self._neighbours_and_ranks(
         #     self.distance_latnet)
 
@@ -105,7 +105,7 @@ class Eval():
 
         # Convert this into ranks (finally)
         ranks = indices.argsort(axis=-1, kind="stable")
-        # print(ranks)
+        # logging.debug(ranks)
 
         return neighbourhood, ranks
 
@@ -189,28 +189,28 @@ class Eval():
         else:
             label_ = self.label
         
-        # print(label_)
+        # logging.debug(label_)
 
         path_list = Curance_path_list(self.neighbour_input, self.distance_input, label_)
 
-        # print(path_list)
+        # logging.debug(path_list)
         alpha_list = []
         for path in path_list:
             if len(path)>3:
-                # print(path)
+                # logging.debug(path)
                 for i in range(len(path)-3):
                     a_index = path[0]
                     b_index = path[i+1]
                     c_index = path[-1]
-                    # print([a_index,b_index,c_index])
+                    # logging.debug([a_index,b_index,c_index])
 
                     v1 = self.latent[b_index] - self.latent[a_index]
                     v2 = self.latent[c_index] - self.latent[b_index]
                     cos_alpha = v1.dot(v2)/(np.linalg.norm(v1) * np.linalg.norm(v2))
                     alpha = np.arccos(cos_alpha)
                     alpha_list.append(alpha)
-        # print( alpha_list )
-        # print( alpha_list )
+        # logging.debug( alpha_list )
+        # logging.debug( alpha_list )
         alpha_list = np.array(alpha_list)
         alpha_list = alpha_list[~np.isnan(alpha_list)]
         return np.mean( alpha_list )
@@ -226,15 +226,15 @@ class Eval():
         else:
             label_ = self.label
         
-        # print(label_)
+        # logging.debug(label_)
 
         path_list = Curance_path_list(self.neighbour_input, self.distance_input, label_)
 
-        # print(path_list)
+        # logging.debug(path_list)
         alpha_list = []
         for path in path_list:
             if len(path)>3:
-                # print(path)
+                # logging.debug(path)
                 for i in range(len(path)-3):
                     a_index = path[i]
                     b_index = path[i+1]
@@ -245,8 +245,8 @@ class Eval():
                     cos_alpha = v1.dot(v2)/(np.linalg.norm(v1) * np.linalg.norm(v2))
                     alpha = np.arccos(cos_alpha)
                     alpha_list.append(alpha)
-        # print( alpha_list )
-        # print( alpha_list )
+        # logging.debug( alpha_list )
+        # logging.debug( alpha_list )
         alpha_list = np.array(alpha_list)
         alpha_list = alpha_list[~np.isnan(alpha_list)]
         return np.mean( alpha_list )
@@ -293,10 +293,10 @@ class Eval():
         # precision_macro = metrics.precision_score(label, new_predict, average='macro')
         # # nmi=metrics.normalized_mutual_info_score(label, predict_labels)
         # nmi = metrics.v_measure_score(label, predict_labels)
-        # # print(nmi, nmi2)
+        # # logging.debug(nmi, nmi2)
         # adjscore = metrics.adjusted_rand_score(label, predict_labels)
 
-        # print('acc:{}, nmi:{}, f1_macro:{}, precision_macro:{}, adjscore:{}'.format(
+        # logging.debug('acc:{}, nmi:{}, f1_macro:{}, precision_macro:{}, adjscore:{}'.format(
         #     acc, nmi, f1_macro, precision_macro, adjscore))
         return acc#, nmi, f1_macro, precision_macro, adjscore
 
@@ -417,7 +417,7 @@ class Eval():
         # n = self.distance_input.shape[0]
         import scipy
         r = scipy.stats.pearsonr(self.distance_input.reshape(-1), self.distance_latnet.reshape(-1))
-        # print(r)
+        # logging.debug(r)
         return r[0]
 
     def E_Dismatcher(self):   
@@ -430,8 +430,8 @@ class Eval():
         list_dis = np.array(list_dis)
         list_dis_norm=list_dis/list_dis.max()        
         sort1 = np.argsort(list_dis_norm)
-        # print('latent std:', list_dis_norm)
-        # print('latent sort:', sort1)
+        # logging.debug('latent std:', list_dis_norm)
+        # logging.debug('latent sort:', sort1)
 
         emb, label = self.input, self.label
         emb = emb.reshape(emb.shape[0],-1)
@@ -443,8 +443,8 @@ class Eval():
         list_dis = np.array(list_dis)
         list_dis_norm=list_dis/list_dis.max()        
         sort2 = np.argsort(list_dis_norm)
-        # print('latent std:', list_dis_norm)
-        # print('latent sort:', sort2)
+        # logging.debug('latent std:', list_dis_norm)
+        # logging.debug('latent sort:', sort2)
 
 
         v, s, t = 0, sort2.tolist(), sort1.tolist()  

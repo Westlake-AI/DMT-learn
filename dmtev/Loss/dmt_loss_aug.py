@@ -101,10 +101,10 @@ class MyLoss(nn.Module):
         loss_ce_1 = self.ITEM_loss(P_=P[:1000][:,:1000], Q_=Q[:1000][:,:1000])
         loss_ce_2 = self.ITEM_loss(P_=P[:1000][:, 1000:], Q_=Q[:1000][:, 1000:])
 
-        # print('P_1', P[:1000][:,:1000])
-        # print('Q_1', Q[:1000][:,:1000])
-        print('dis_Q', dis_Q[:1000][:, 1000:])
-        print('Q_2', Q[:1000][:, 1000:])
+        # logging.debug('P_1', P[:1000][:,:1000])
+        # logging.debug('Q_1', Q[:1000][:,:1000])
+        logging.debug('dis_Q', dis_Q[:1000][:, 1000:])
+        logging.debug('Q_2', Q[:1000][:, 1000:])
 
         # loss_ce = self.ITEM_loss(P_=P, Q_=Q)
         return loss_ce_1 + loss_ce_2

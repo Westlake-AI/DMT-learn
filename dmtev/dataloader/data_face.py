@@ -9,7 +9,7 @@ from sklearn.decomposition import PCA
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 import torch
-from dataloader.data_sourse import DigitsDataset
+from .data_sourse import DigitsDataset
 
 import os
 
@@ -97,15 +97,15 @@ def load_training_data(face_profile_directory):  #face_profile_directory   ../fa
     X1, y1 = read_images_from_single_face_profile(first_data_path, 0)
     X_data = X1
     Y_data = y1
-    print ("Loading Database: ")
-    print (0, "    ",X1.shape[0]," images are loaded from:", first_data_path)
+    logging.debug ("Loading Database: ")
+    logging.debug (0, "    ",X1.shape[0]," images are loaded from:", first_data_path)
     for i in range(1, len(face_profile_names)):
         directory_name = str(face_profile_names[i])
         directory_path = os.path.join(face_profile_directory, directory_name)
         tempX, tempY = read_images_from_single_face_profile(directory_path, i)
         X_data = np.concatenate((X_data, tempX), axis=0)
         Y_data = np.append(Y_data, tempY)
-        print (i, "    ",tempX.shape[0]," images are loaded from:", directory_path)
+        logging.debug (i, "    ",tempX.shape[0]," images are loaded from:", directory_path)
 
     return X_data, Y_data, face_profile_names       # X_data: (2452,2500), Y_data: (2452,)
 

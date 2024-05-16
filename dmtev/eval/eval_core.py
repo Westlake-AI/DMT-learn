@@ -78,7 +78,7 @@ class Eval:
 
     def VisSelectUMAP(self, data, label):
 
-        # print(data.shape)
+        # logging.debug(data.shape)
         data_masked = data[:, self.mask]
         emb_selected_data = umap.UMAP().fit_transform(data_masked)
         # plt.scatter(emb_selected_data[:,0], emb_selected_data[:,1], c=label)
@@ -109,8 +109,8 @@ class Eval:
             (-1, self.K)
         ).sum(axis=1) / self.K
         # import pdb; pdb.set_trace()
-        # print(self.input_knn_graph.shape)
-        # print(rate_hist.shape)
+        # logging.debug(self.input_knn_graph.shape)
+        # logging.debug(rate_hist.shape)
         rate_hist_array = np.array(rate_hist.view()).reshape((-1))
         # plt.figure()
         plt.hist(x=rate_hist_array, bins=10, density=True, alpha=0.75)
@@ -154,7 +154,7 @@ class Eval:
 
         # Convert this into ranks (finally)
         ranks = indices.argsort(axis=-1, kind="stable")
-        # print(ranks)
+        # logging.debug(ranks)
 
         return neighbourhood, ranks
 
@@ -491,7 +491,7 @@ class Eval:
         r = scipy.stats.pearsonr(
             self.distance_input.reshape(-1), self.distance_latnet.reshape(-1)
         )
-        # print(r)
+        # logging.debug(r)
         return r[0]
 
     def E_Dismatcher(self):
@@ -504,8 +504,8 @@ class Eval:
         list_dis = np.array(list_dis)
         list_dis_norm = list_dis / list_dis.max()
         sort1 = np.argsort(list_dis_norm)
-        # print('latent std:', list_dis_norm)
-        # print('latent sort:', sort1)
+        # logging.debug('latent std:', list_dis_norm)
+        # logging.debug('latent sort:', sort1)
 
         emb, label = self.input, self.label
         emb = emb.reshape(emb.shape[0], -1)
@@ -517,8 +517,8 @@ class Eval:
         list_dis = np.array(list_dis)
         list_dis_norm = list_dis / list_dis.max()
         sort2 = np.argsort(list_dis_norm)
-        # print('latent std:', list_dis_norm)
-        # print('latent sort:', sort2)
+        # logging.debug('latent std:', list_dis_norm)
+        # logging.debug('latent sort:', sort2)
 
         v, s, t = 0, sort2.tolist(), sort1.tolist()
         for i in range(len(t)):
@@ -772,7 +772,7 @@ def Plot_subfig_1_1(
     # color = np.concatenate([color, color[-2:-1]])
     color_set = list(set(color.tolist()))
 
-    print(color_set)
+    logging.debug(color_set)
     fig_list = []
     for c in color_set:
         mask = label == c
@@ -921,8 +921,8 @@ def Plot_subfig_2_1(global_importance, fea_list):
     list_xx = np.array(list_xx)
     list_yy = np.array(list_yy)
 
-    print(list_xx)
-    print(list_yy)
+    logging.debug(list_xx)
+    logging.debug(list_yy)
 
     bar = go.Bar(
         x=list_xx,
@@ -1071,7 +1071,7 @@ def Plot_case_study(
     if pix > 0:
         dict_fig = {}
         from plotly.subplots import make_subplots
-        print('label:', label_pesodu)
+        logging.debug('label:', label_pesodu)
         for j in range(10):
             fig_img2 = make_subplots(rows=1, cols=10)
             for i in range(10):
@@ -1727,7 +1727,7 @@ def ShowEmbInsFeaPat(
     #     )
 
     fea_mask = (mask.sum(dim=1) > 0.5).detach().cpu().numpy()
-    # print(fea_mask)
+    # logging.debug(fea_mask)
     fea_index_str = ["f{}".format(i) for i in range(fea_emb.shape[0])]
     fea_index_str_use = []
     for i in range(len(fea_index_str)):
@@ -1810,8 +1810,8 @@ def rotate_fea(fea, ins, mask):
     theta = np.radians(best_i)
     c, s = np.cos(theta), np.sin(theta)
     best_r = np.array(((c, -s), (s, c)))
-    print("best_i")
-    print(best_i)
+    logging.debug("best_i")
+    logging.debug(best_i)
     return np.dot(fea, best_r), best_r
 
 
@@ -1900,7 +1900,7 @@ def show_local_expl(
     mask_fea_pat, shap_values_fea_group = feag_cluster_mask(
         shap_values, model.mask, fea_cluster_centers, fea_label_pesodu, n_feverycluset
     )
-    print("finish local exp")
+    logging.debug("finish local exp")
 
     for i in range(n_clusters):
         kmeans_mask = label_pesodu == i
@@ -2092,7 +2092,7 @@ def ShowEmbInsFeaPat_returen_fig(
     )
 
     fea_mask = (mask.sum(dim=1) > 0.5).detach().cpu().numpy()
-    # print(fea_mask)
+    # logging.debug(fea_mask)
     fea_index_str = ["f{}".format(i) for i in range(fea_emb.shape[0])]
     fea_index_str_use = []
     for i in range(len(fea_index_str)):

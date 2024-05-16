@@ -31,7 +31,7 @@ def Similarity(dist, rho, sigma_array, gamma, v=100):
             (1 + dist_rho / v),
             -1 * (v + 1)
             ) * 2 * 3.14
-    # print(Pij, Pij2)
+    # logging.debug(Pij, Pij2)
     # input()
     P = Pij + Pij.t() - torch.mul(Pij, Pij.t())
 

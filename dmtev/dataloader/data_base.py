@@ -14,11 +14,11 @@ from sklearn.decomposition import PCA
 import pandas as pd
 
 
-from dataloader.data_sourse import DigitsDataset
-from dataloader.data_graph import *
-from dataloader.data_insemb import *
-from dataloader.data_XU import *
-from dataloader.data_face import *
+from .data_sourse import DigitsDataset
+from .data_graph import *
+from .data_insemb import *
+from .data_XU import *
+from .data_face import *
 
 
 class Cifar10Dataset(DigitsDataset):
@@ -377,7 +377,7 @@ class Coil100Dataset(DigitsDataset):
         label = []
         data = np.zeros((100 * 72, 128, 128, 3))
         for i, path_i in enumerate(fig_path):
-            # print(i)
+            # logging.debug(i)
             if "obj" in path_i:
                 I = Image.open(path + "/" + path_i)
                 I_array = np.array(I.resize((128, 128)))

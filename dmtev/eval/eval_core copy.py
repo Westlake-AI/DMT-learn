@@ -74,7 +74,7 @@ class Eval:
 
     def VisSelectUMAP(self, data, label):
 
-        # print(data.shape)
+        # logging.debug(data.shape)
         data_masked = data[:, self.mask]
         emb_selected_data = umap.UMAP().fit_transform(data_masked)
         # plt.scatter(emb_selected_data[:,0], emb_selected_data[:,1], c=label)
@@ -105,8 +105,8 @@ class Eval:
             (-1, self.K)
         ).sum(axis=1) / self.K
         # import pdb; pdb.set_trace()
-        # print(self.input_knn_graph.shape)
-        # print(rate_hist.shape)
+        # logging.debug(self.input_knn_graph.shape)
+        # logging.debug(rate_hist.shape)
         rate_hist_array = np.array(rate_hist.view()).reshape((-1))
         # plt.figure()
         plt.hist(x=rate_hist_array, bins=10, density=True, alpha=0.75)
@@ -150,7 +150,7 @@ class Eval:
 
         # Convert this into ranks (finally)
         ranks = indices.argsort(axis=-1, kind="stable")
-        # print(ranks)
+        # logging.debug(ranks)
 
         return neighbourhood, ranks
 
@@ -487,7 +487,7 @@ class Eval:
         r = scipy.stats.pearsonr(
             self.distance_input.reshape(-1), self.distance_latnet.reshape(-1)
         )
-        # print(r)
+        # logging.debug(r)
         return r[0]
 
     def E_Dismatcher(self):
@@ -500,8 +500,8 @@ class Eval:
         list_dis = np.array(list_dis)
         list_dis_norm = list_dis / list_dis.max()
         sort1 = np.argsort(list_dis_norm)
-        # print('latent std:', list_dis_norm)
-        # print('latent sort:', sort1)
+        # logging.debug('latent std:', list_dis_norm)
+        # logging.debug('latent sort:', sort1)
 
         emb, label = self.input, self.label
         emb = emb.reshape(emb.shape[0], -1)
@@ -513,8 +513,8 @@ class Eval:
         list_dis = np.array(list_dis)
         list_dis_norm = list_dis / list_dis.max()
         sort2 = np.argsort(list_dis_norm)
-        # print('latent std:', list_dis_norm)
-        # print('latent sort:', sort2)
+        # logging.debug('latent std:', list_dis_norm)
+        # logging.debug('latent sort:', sort2)
 
         v, s, t = 0, sort2.tolist(), sort1.tolist()
         for i in range(len(t)):
@@ -1241,7 +1241,7 @@ def ShowEmbInsFeaPat(ins_emb, pat_emb, pat_emb_neg, fea_emb, fea_emb_neg, label,
     #     )
 
     fea_mask = (mask.sum(dim=1)>0.5).detach().cpu().numpy()
-    # print(fea_mask)
+    # logging.debug(fea_mask)
     fea_index_str = ['f{}'.format(i) for i in range(fea_emb.shape[0])]
     fea_index_str_use = []
     for i in range(len(fea_index_str)):
@@ -1322,8 +1322,8 @@ def rotate_fea(fea, ins, mask):
     theta = np.radians(best_i)
     c, s = np.cos(theta), np.sin(theta)
     best_r = np.array(((c, -s), (s, c)))
-    print('best_i')
-    print(best_i)
+    logging.debug('best_i')
+    logging.debug(best_i)
     return np.dot(fea, best_r), best_r
 
 def feag_cluster_mask(shap_values, mask, fea_cluster_centers, fea_label_pesodu, n_feverycluset):
@@ -1399,7 +1399,7 @@ def show_local_expl(
     mask_fea_pat, shap_values_fea_group = feag_cluster_mask(
         shap_values, model.mask, fea_cluster_centers, fea_label_pesodu, 
         n_feverycluset)
-    print('finish local exp')
+    logging.debug('finish local exp')
 
     import_fea_every_clu = shap_values.mean(axis=1).argsort(axis=1)[:,::-1]
     str_import_fea_every_clu =  [
@@ -1560,7 +1560,7 @@ def ShowEmbInsFeaPat_returen_fig(
         )
 
     fea_mask = (mask.sum(dim=1)>0.5).detach().cpu().numpy()
-    # print(fea_mask)
+    # logging.debug(fea_mask)
     fea_index_str = ['f{}'.format(i) for i in range(fea_emb.shape[0])]
     fea_index_str_use = []
     for i in range(len(fea_index_str)):
@@ -1651,7 +1651,7 @@ def load_cf_explain(model, ins_emb, cf, img_from):
             cf_tem_emb = model.forward_exp(cf_tem)[2]
             dis_tem_to_cf_c = model.pdist2(cf_tem_emb, cf_c_emb)
             dis_tem_to_cf_c[~change_bool[0]]=dis_tem_to_cf_c.max()+1
-            print(change_bool.sum(), dis_tem_to_cf_c.min())
+            logging.debug(change_bool.sum(), dis_tem_to_cf_c.min())
             if dis_tem_to_cf_c.min() < 0.01:
                 break
             best_index = dis_tem_to_cf_c.argmin()
@@ -1671,7 +1671,7 @@ def load_cf_explain(model, ins_emb, cf, img_from):
     loop_emb_his_np_for_cf_0 = np.concatenate(loop_emb_his_np_for_cf_0)
     loop_emb_his_np_for_cf_1 = np.concatenate(loop_emb_his_np_for_cf_1)
 
-    print(loop_emb_his_np_for_cf_0)
+    logging.debug(loop_emb_his_np_for_cf_0)
 
     str_use = []
     o_list = []
