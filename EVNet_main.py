@@ -1,35 +1,31 @@
 import functools
-import os
-import sys
-
+from functools import reduce
 import numpy as np
+import os
+import plotly.express as px
 import plotly.graph_objects as go
 import pytorch_lightning as pl
-import torch
 from pytorch_lightning import LightningModule, Trainer
+import sys
+import torch
 from torch import nn
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader
-import scipy
 from torchvision import transforms
-import uuid
-from functools import reduce
 
-import eval.eval_core as ec
-import eval.eval_core_base as ecb
-import Loss.dmt_loss_aug2 as dmt_loss_aug
-import plotly.express as px
+import dmtev.eval.eval_core as ec
+import dmtev.eval.eval_core_base as ecb
+import dmtev.Loss.dmt_loss_aug2 as dmt_loss_aug
 
 # import Loss.dmt_loss_aug as dmt_loss_aug1
-import wandb
-from aug.aug import aug_near_feautee_change, aug_near_mix, aug_randn
-from dataloader import data_base
-from model.model import NN_FCBNRL_MM
+from dmtev.aug.aug import aug_near_feautee_change, aug_near_mix, aug_randn
+from dmtev.dataloader import data_base
+from dmtev.model.model import NN_FCBNRL_MM
 
 torch.set_num_threads(2)
 
 
-def gpu2np(a):
+def gpu2np(a: torch.Tensor):
     return a.cpu().detach().numpy()
 
 class LitPatNN(LightningModule):
@@ -54,7 +50,8 @@ class LitPatNN(LightningModule):
         self.aim_cluster = None
         self.importance = None
         self.setup()
-        self.wandb_logs = {}
+        if args.wandb:
+            self.wandb_logs = {}
         self.mse = torch.nn.CrossEntropyLoss()
         
 
@@ -145,13 +142,14 @@ class LitPatNN(LightningModule):
         )
 
 
-        self.wandb_logs = {
-            # "loss_mse": loss_mse,
-            "loss_topo": loss_topo,
-            "lr": self.trainer.optimizers[0].param_groups[0]["lr"],
-            "epoch": self.current_epoch,
-            # "T": self.t_list[self.current_epoch],
-        }
+        if args.wandb:
+            self.wandb_logs = {
+                # "loss_mse": loss_mse,
+                "loss_topo": loss_topo,
+                "lr": self.trainer.optimizers[0].param_groups[0]["lr"],
+                "epoch": self.current_epoch,
+                # "T": self.t_list[self.current_epoch],
+            }
 
         loss_l2 = 0
         if self.current_epoch >= self.hparams.log_interval and batch_idx == 0:
@@ -231,29 +229,31 @@ class LitPatNN(LightningModule):
                     k=10,
                 )
 
-                self.wandb_logs.update(
-                    {
-                        "epoch": self.current_epoch,
-                        "alpha": self.alpha,
-                        "metric/#link": N_link,
-                        "metric/#Feature": N_Feature,
-                        "SVC_train": ecb_e_train.E_Classifacation_SVC(),  # SVC= ecb_e.E_Classifacation_SVC(),
-                        "SVC_test": ecb_e_test.E_Classifacation_SVC(),  # SVC= ecb_e.E_Classifacation_SVC(),
-                        "main_easy/fig_easy": self.up_mainfig_emb(data, ins_emb, label, index, mask=gpu2np(self.mask))
-                    }
-                )
+                if args.wandb:
+                    self.wandb_logs.update(
+                        {
+                            "epoch": self.current_epoch,
+                            "alpha": self.alpha,
+                            "metric/#link": N_link,
+                            "metric/#Feature": N_Feature,
+                            "SVC_train": ecb_e_train.E_Classifacation_SVC(),  # SVC= ecb_e.E_Classifacation_SVC(),
+                            "SVC_test": ecb_e_test.E_Classifacation_SVC(),  # SVC= ecb_e.E_Classifacation_SVC(),
+                            "main_easy/fig_easy": self.up_mainfig_emb(data, ins_emb, label, index, mask=gpu2np(self.mask))
+                        }
+                    )
 
                 ec.ShowEmb(ins_emb, self.data_train.labelstr, index)
             else:
-                self.wandb_logs.update(
-                    {
-                        "epoch": self.current_epoch,
-                        "alpha": self.alpha,
-                        "metric/#link": N_link,
-                        "metric/#Feature": N_Feature,
-                        "main_easy/fig_easy": self.up_mainfig_emb(data, ins_emb, label, index, mask=gpu2np(self.mask))
-                    }
-                )
+                if args.wandb:
+                    self.wandb_logs.update(
+                        {
+                            "epoch": self.current_epoch,
+                            "alpha": self.alpha,
+                            "metric/#link": N_link,
+                            "metric/#Feature": N_Feature,
+                            "main_easy/fig_easy": self.up_mainfig_emb(data, ins_emb, label, index, mask=gpu2np(self.mask))
+                        }
+                    )
 
             if self.hparams.save_checkpoint:
                 np.save(
@@ -268,7 +268,7 @@ class LitPatNN(LightningModule):
             else:
                 self.stop = False
 
-            if self.wandb_logs is not None:
+            if args.wandb and self.wandb_logs is not None:
                 wandb.log(self.wandb_logs)
 
         else:
@@ -470,14 +470,15 @@ def main(args):
     runname = "_".join(["dmt", args.data_name, "".join(info)])
     callbacks_list = []
 
-    wandb.init(
-        name=runname,
-        project="EVNet" + args.project_name,
-        entity="zangzelin",
-        mode="offline" if bool(args.offline) else "online",
-        save_code=True,
-        config=args,
-    )
+    if args.wandb:
+        wandb.init(
+            name=runname,
+            project="EVNet" + args.project_name,
+            entity="zangzelin",
+            mode="offline" if bool(args.offline) else "online",
+            save_code=True,
+            config=args,
+        )
 
     model = LitPatNN(dataname=args.data_name,**args.__dict__,)
 
@@ -603,8 +604,13 @@ if __name__ == "__main__":
     )
     parser.add_argument("--epochs", type=int, default=1500)
     parser.add_argument("--lr", type=float, default=1e-3, metavar="LR")
+    
+    # use wandb
+    parser.add_argument("--wandb", action="store_true")
 
     args = pl.Trainer.add_argparse_args(parser)
     args = args.parse_args()
 
+    if args.wandb:
+        import wandb
     main(args)
