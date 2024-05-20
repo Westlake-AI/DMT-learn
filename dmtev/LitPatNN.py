@@ -61,9 +61,9 @@ class LitPatNN(LightningModule):
         self.uselabel = uselabel
         self.NetworkStructure_1 = NetworkStructure_1
         self.NetworkStructure_2 = NetworkStructure_2
-        self.log_interval = log_interval
         self.batch_size = batch_size
         self.epochs = epochs
+        self.log_interval = min(log_interval, self.epochs)
         self.lr = lr
         self.my_device = device
 

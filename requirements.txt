@@ -4,13 +4,13 @@ numpy==1.26.2
 pytorch-lightning==1.9.0
 scanpy
 
-# torchaudio@https://download.pytorch.org/whl/cu118/torchaudio-2.1.2%2Bcu118-cp310-cp310-linux_x86_64.whl#sha256=b39468862d34a3a89af4db333bc935a02525a509b2c8949f638f83eb6061da02
-# torchvision@https://download.pytorch.org/whl/cu118/torchvision-0.16.2%2Bcu118-cp310-cp310-linux_x86_64.whl#sha256=18470aef0bbde73f5a6a96135cd457f4d8be31f60be7ceae4ef5174f02f73add
-# torch@https://download.pytorch.org/whl/cu118/torch-2.1.2%2Bcu118-cp39-cp39-linux_x86_64.whl#sha256=9a36473dd38eeae4e54b2235d06b92d5e63cedbcc15877eab4a15f152fd90b4a
-
 torchaudio==2.1.2
 torchvision==0.16.2
 torch==2.1.2
+
+# torchaudio@https://download.pytorch.org/whl/cu118/torchaudio-2.1.2%2Bcu118-cp310-cp310-linux_x86_64.whl#sha256=b39468862d34a3a89af4db333bc935a02525a509b2c8949f638f83eb6061da02
+# torchvision@https://download.pytorch.org/whl/cu118/torchvision-0.16.2%2Bcu118-cp310-cp310-linux_x86_64.whl#sha256=18470aef0bbde73f5a6a96135cd457f4d8be31f60be7ceae4ef5174f02f73add
+# torch@https://download.pytorch.org/whl/cu118/torch-2.1.2%2Bcu118-cp39-cp39-linux_x86_64.whl#sha256=9a36473dd38eeae4e54b2235d06b92d5e63cedbcc15877eab4a15f152fd90b4a
 
 # wandb==0.16.1
 

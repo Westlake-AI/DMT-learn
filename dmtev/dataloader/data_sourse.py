@@ -9,6 +9,7 @@ import joblib
 import torch
 import numpy as np
 import scipy
+import tempfile
 from sklearn.decomposition import PCA
 # import PoolRunner
 from sklearn.metrics import pairwise_distances
@@ -35,11 +36,10 @@ class DigitsDataset(data.Dataset):
 
     def cal_near_index(self, k=10, device="cuda", uselabel=False):
         
-        os.makedirs("save_near_index", exist_ok=True)
-        
-        filename = "save_near_index/data_name{}K{}uselabel{}".format(
+        # os.makedirs("save_near_index", exist_ok=True)
+        filename = "data_name{}K{}uselabel{}".format(
             self.data_name, k, uselabel)
-        if not os.path.exists(filename):
+        with tempfile.NamedTemporaryFile() as file:
             X_rshaped = (
                 self.data.reshape(
                     (self.data.shape[0], -1)).detach().cpu().numpy()
@@ -55,12 +55,9 @@ class DigitsDataset(data.Dataset):
                 M = np.repeat(self.label.reshape(1, -1), X_rshaped.shape[0], axis=0)
                 dis[(M-M.T)!=0] = dis.max()+1
                 neighbors_index = dis.argsort(axis=1)[:, 1:k+1]
-            joblib.dump(value=neighbors_index, filename=filename)
-
-            logging.debug(f"save data to {filename}")
-        else:
-            logging.debug(f"load data from {filename}")
-            neighbors_index = joblib.load(filename)
+            # joblib.dump(value=neighbors_index, filename=filename)
+            # joblib.dump(value=neighbors_index, filename=file.name)
+            # logging.debug(f"save data to {filename}")
         # import pdb; pdb.set_trace()
         self.neighbors_index = tensor(neighbors_index).to(device)
 
