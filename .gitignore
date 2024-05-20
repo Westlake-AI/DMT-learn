@@ -12,3 +12,7 @@ save_checkpoint/*
 save_checkpoint_use/*
 tensorflow/*
 data/*
+.vscode/
+build/
+dist/
+*.egg-info/

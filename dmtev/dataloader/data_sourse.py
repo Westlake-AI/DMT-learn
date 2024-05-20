@@ -57,9 +57,9 @@ class DigitsDataset(data.Dataset):
                 neighbors_index = dis.argsort(axis=1)[:, 1:k+1]
             joblib.dump(value=neighbors_index, filename=filename)
 
-            logging.debug("save data to ", filename)
+            logging.debug(f"save data to {filename}")
         else:
-            logging.debug("load data from ", filename)
+            logging.debug(f"load data from {filename}")
             neighbors_index = joblib.load(filename)
         # import pdb; pdb.set_trace()
         self.neighbors_index = tensor(neighbors_index).to(device)
@@ -116,7 +116,7 @@ class DigitsDataset(data.Dataset):
 
         if X_rshaped.shape[1] > 100:
             X_rshaped = PCA(n_components=50).fit_transform(X_rshaped)
-            logging.debug('--------------->PCA', X_rshaped.shape)
+            logging.debug('--------------->PCA {}'.format(X_rshaped.shape))
 
         # index = NNDescent(X_rshaped, n_jobs=-1,)
         # neighbors_index, neighbors_dist = index.query(X_rshaped, k=K )
@@ -143,8 +143,8 @@ class DigitsDataset(data.Dataset):
         sigma = np.array(r.Getout())
 
         std_dis = np.std(rho) / np.sqrt(X.shape[1])
-        logging.debug('sigma', sigma)
-        logging.debug('sigma max', np.max(sigma))
+        logging.debug('sigma: {}'.format(sigma))
+        logging.debug('sigma max {}'.format(np.max(sigma)))
         # if std_dis < 0.20 or self.same_sigma is True:
         #     # sigma[:] = sigma.mean() * 5
         #     sigma[:] = sigma.mean()

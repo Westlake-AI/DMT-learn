@@ -7,8 +7,8 @@ import os
 import joblib
 import torch
 import numpy as np
-from PIL import Image
 import scanpy as sc
+from PIL import Image
 import scipy
 from sklearn.decomposition import PCA
 import pandas as pd
@@ -197,7 +197,7 @@ class arceneDataset(DigitsDataset):
         # digit = load_digits()
         self.data_name = data_name
         # sadata = sc.read(datapath + "/colonn.h5ad")
-        mat = scipy.io.loadmat(datapath+'/feature_select/arcene.mat')
+        mat = sc.io.loadmat(datapath+'/feature_select/arcene.mat')
         data = tensor(np.array(mat['X']).astype(np.float32)).float()
         label = tensor(np.array(mat['Y'])).long()
 

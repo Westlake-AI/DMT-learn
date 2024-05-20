@@ -7,7 +7,7 @@ from setuptools import find_packages
 # Settings
 FILE = Path(__file__).resolve()
 PARENT = FILE.parent  # root directory
-README = (PARENT / 'README.md').read_text(encoding='utf-8')
+README = (PARENT / 'dmtev/README.md').read_text(encoding='utf-8')
 
 
 def get_version():
@@ -16,6 +16,7 @@ def get_version():
         exec(compile(f.read(), version_file, 'exec'))
     return locals()['__version__']   
  
+
 def parse_requirements(file_path: Path):
     """
     Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
@@ -30,33 +31,37 @@ def parse_requirements(file_path: Path):
         line = line.strip()
         if line and not line.startswith('#'):
             requirements.append(line.split('#')[0].strip())  # ignore inline comments
- 
+
+    return requirements
+
 
 setup(
-    name='DMTEV-learn',
-    version='0.0.1',
+    name='dmtev-learn',
+    version=get_version(),
     description='An Explainable Deep Network for Dimension Reduction (EVNet)',
     long_description=README,
     long_description_content_type='text/markdown',
     author='zangzelin',
     author_email='zangzelin@westlake.edu.cn',
+    # packages=find_packages(),  # 系统自动从当前目录开始找包
+    # packages=['dmtev', 'dmtev/aug', 'dmtev/dataloader', 'dmtev/Loss', 'dmtev/model'],
+    packages=['dmtev'],
     python_requires=">=3.7",
-    requires=parse_requirements(PARENT / 'requirements.txt'),
-    packages=find_packages(),  # 系统自动从当前目录开始找包
-    exclude_package_data=[
-        'data/',
-        '__pycache__/',
-        '.vscode/',
-        'lightning_logs/',
-        'wandb/',
-        'save_near_index/',
-        'baseline/',
-        'Embedding/',
-        'save_html/',
-        'save_checkpoint/',
-        'save_checkpoint_use/',
-        'tensorflow/*',
-    ],
+    install_requires=parse_requirements(PARENT / 'requirements.txt'),
+    dependency_links=['https://download.pytorch.org/whl/cu118/torch', 'https://download.pytorch.org/whl/cu118/torchvision', 'https://download.pytorch.org/whl/cu118/torchaudio'],
+    exclude_package_data={
+        '__pycache__': ['*'],
+    },
+    extras_require={
+        "eval": [
+            "pandas",
+            "plotly",
+            "matplotlib",
+            "umap-learn",
+            "scanpy"
+        ]
+    },
+    platforms=['linux_x86_64'],
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Operating System :: POSIX :: Linux",
@@ -67,5 +72,8 @@ setup(
         "Programming Language :: Python::3.10",
         "Programming Language :: Python::3.11",
         "Programming Language :: Python::3.12",
+        "Topic :: Software Development",
+        "Topic :: Scientific/Engineering",
     ],
+    keywords="dimension reduction manifold deep network",
 )

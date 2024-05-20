@@ -1,5 +1,6 @@
 import functools
 from functools import reduce
+import logging
 import numpy as np
 import os
 import plotly.express as px
@@ -459,8 +460,6 @@ class LitPatNN(LightningModule):
         np.save("save_emb/" + self.hparams.data_name + "={}".format(self.current_epoch), ins_emb)
         
         return fig
-
-
 
 
 def main(args):
