@@ -43,9 +43,7 @@ setup(
     long_description_content_type='text/markdown',
     author='zangzelin',
     author_email='zangzelin@westlake.edu.cn',
-    # packages=find_packages(),  # 系统自动从当前目录开始找包
-    # packages=['dmtev', 'dmtev/aug', 'dmtev/dataloader', 'dmtev/Loss', 'dmtev/model'],
-    packages=['dmtev'],
+    packages=find_packages(),  # 系统自动从当前目录开始找包
     python_requires=">=3.7",
     install_requires=parse_requirements(PARENT / 'requirements.txt'),
     dependency_links=['https://download.pytorch.org/whl/cu118/torch', 'https://download.pytorch.org/whl/cu118/torchvision', 'https://download.pytorch.org/whl/cu118/torchaudio'],
