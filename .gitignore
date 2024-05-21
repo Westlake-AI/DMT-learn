@@ -16,3 +16,4 @@ dist/
 /*.py
 requirements.txt
 run_sweep.sh
+main.sh
