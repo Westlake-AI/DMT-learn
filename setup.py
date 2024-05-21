@@ -7,7 +7,7 @@ from setuptools import find_packages
 # Settings
 FILE = Path(__file__).resolve()
 PARENT = FILE.parent  # root directory
-README = (PARENT / 'dmtev/README.md').read_text(encoding='utf-8')
+README = (PARENT / 'README.md').read_text(encoding='utf-8')
 
 
 def get_version():
@@ -62,6 +62,7 @@ setup(
         ]
     },
     platforms=['linux_x86_64'],
+    license='MIT',
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Operating System :: POSIX :: Linux",
