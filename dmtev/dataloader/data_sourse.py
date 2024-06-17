@@ -70,16 +70,12 @@ class DigitsDataset(data.Dataset):
 
         if train is True:
             self.data = data[rand_perm[:split_index]]
-            self.label = label[rand_perm[:split_index]]
         else:
             self.data = data[rand_perm[split_index:]]
-            self.label = label[rand_perm[split_index:]]
         logging.debug("train: {} size {}".format(train, self.data.shape))
 
     def to_device(self, device):
-        self.labelstr = [[str(int(i)) for i in self.label]]
         self.data = self.data.to(device)
-        self.label = self.label.to(device)
 
     def __getitem__(self, index):
         return index

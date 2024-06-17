@@ -1,12 +1,14 @@
 from torch.utils import data
 from sklearn.datasets import load_digits
 from torch import tensor
+from torch import Tensor
 import torchvision.datasets as datasets
 from pynndescent import NNDescent
 import os
 import joblib
 import torch
 import numpy as np
+from numpy import ndarray
 import scanpy as sc
 from PIL import Image
 import scipy
@@ -19,6 +21,17 @@ from .data_graph import *
 from .data_insemb import *
 from .data_XU import *
 from .data_face import *
+
+
+class CommonDataset(DigitsDataset):
+    def __init__(self, data: ndarray | Tensor):
+        self.data_name = "Common"
+        if len(data.shape) > 2:
+            data = data.reshape((data.shape[0], -1))
+        if isinstance(data, ndarray):
+            data = Tensor(data)
+        self.data = data
+        self.graphwithpca = False
 
 
 class Cifar10Dataset(DigitsDataset):

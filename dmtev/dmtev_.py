@@ -4,12 +4,13 @@ from sklearn.utils.validation import check_is_fitted
 from sklearn.metrics import pairwise_distances
 from sklearn.preprocessing import normalize
 
+from lightning_fabric.utilities.seed import seed_everything
+import numpy as np
 import os
 from os import PathLike
-import pytorch_lightning as pl
 from pytorch_lightning import Trainer
-from lightning_fabric.utilities.seed import seed_everything
 import torch
+import logging
 
 from .LitPatNN_ import LitPatNN
 
@@ -27,7 +28,8 @@ class DMTEV(BaseEstimator):
 
         self._validate_parameters(**kwargs)
 
-        if device_id is not None and torch.cuda.is_available():
+        if device_id is not None and device_id >= 0 and torch.cuda.is_available():
+            logging.info("Using GPU")
             torch.set_float32_matmul_precision('high')
             self.trainer = Trainer(
                 accelerator="gpu",
@@ -38,6 +40,7 @@ class DMTEV(BaseEstimator):
             )
             device = torch.device(f"cuda:{device_id}")
         else:
+            logging.info("Using CPU")
             self.trainer = Trainer(
                 max_epochs=epochs,
                 logger=False,
@@ -49,8 +52,11 @@ class DMTEV(BaseEstimator):
     def _validate_parameters(self, **kwargs):
         pass
 
-    def fit_transform(self, X=None, y=None, feature_name=None, def_fea_aim=64):
-        self.model.adapt(X, y, feature_name, def_fea_aim)
+    def fit_transform(self, X:np.ndarray|torch.Tensor) -> np.ndarray:
+        if not isinstance(X, np.ndarray) and not isinstance(X, torch.Tensor):
+            raise ValueError("X must be a numpy array or a torch tensor")
+
+        self.model.adapt(X)
         self.trainer.fit(self.model)
         return self.model.ins_emb
 
