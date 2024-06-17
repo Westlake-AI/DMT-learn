@@ -12,19 +12,18 @@ from torch import nn
 # from torch.functional import split
 # from torch.nn.modules import loss
 # from typing import Any
-import scipy
+from scipy.special import gamma
 
 # from Loss.dmt_loss_source import Source
 
 
-def UMAPNoSigmaSimilarity(dist, gamma, v=100, h=1, pow=2):
+def UMAPNoSigmaSimilarity(dist, gamma, v=100, h=1, pow=2, device=torch.device("cpu")):
 
     dist_rho = dist
-
     dist_rho[dist_rho < 0] = 0
     Pij = (
         gamma
-        * torch.tensor(2 * 3.14)
+        * torch.tensor(2 * 3.14, device=device)
         * gamma
         * torch.pow((1 + dist_rho / v), exponent=-1 * (v + 1))
     )
@@ -41,6 +40,7 @@ class MyLoss(nn.Module):
         near_bound=0,
         far_bound=1,
         augNearRate=10000,
+        device=torch.device("cpu"),
     ):
         super(MyLoss, self).__init__()
 
@@ -53,18 +53,19 @@ class MyLoss(nn.Module):
         self.near_bound = near_bound
         self.far_bound = far_bound
         self.augNearRate = augNearRate
+        self.device = device
 
     def forward(
         self,
         input_data,
         latent_data,
         v_latent,
+        eye,
         metric='euclidean',
     ):
 
         data_1 = input_data[: input_data.shape[0] // 2]
-        
-        dis_P = self._DistanceSquared(data_1, metric=metric)
+        dis_P = self._DistanceSquared(data_1, eye=eye, metric=metric)
         # P_1 = self._Similarity(dist=dis_P,
         #             gamma=self.gamma_input,
         #             v=self.v_input, )
@@ -90,13 +91,16 @@ class MyLoss(nn.Module):
         dis_P_2 = dis_P # + nndistance.reshape(1, -1)
         P_2 = self._Similarity(dist=dis_P_2,
             gamma=self.gamma_input,
-            v=self.v_input, )
+            v=self.v_input,
+            device=self.device,
+        )
         latent_data_2 = latent_data[(input_data.shape[0] // 2):]
         dis_Q_2 = self._DistanceSquared(latent_data_1, latent_data_2)
         Q_2 = self._Similarity(
             dist=dis_Q_2,
             gamma=self._CalGamma(v_latent),
             v=v_latent,
+            device=self.device,
         )
         loss_ce_2 = self.ITEM_loss(P_=P_2, Q_=Q_2)
 
@@ -168,7 +172,7 @@ class MyLoss(nn.Module):
         losssum = torch.norm(P - Q, p=3) / P.shape[0]
         return losssum
 
-    def _DistanceSquared(self, x, y=None, metric="euclidean"):
+    def _DistanceSquared(self, x, y=None, eye=None, metric="euclidean"):
         if metric == "euclidean":
             if y is not None:
                 m, n = x.size(0), y.size(0)
@@ -184,7 +188,8 @@ class MyLoss(nn.Module):
                 dist = xx + yy
                 dist = torch.addmm(dist, mat1=x, mat2=x.t(), beta=1, alpha=-2)
                 dist = dist.clamp(min=1e-12)
-                dist[torch.eye(dist.shape[0]) == 1] = 1e-12
+                eye = torch.eye(dist.shape[0]).to(self.device)
+                dist[eye == 1] = 1e-12
         
         if metric == "cossim":
             input_a, input_b = x, x
@@ -200,8 +205,8 @@ class MyLoss(nn.Module):
 
     def _CalGamma(self, v):
 
-        a = scipy.special.gamma((v + 1) / 2)
-        b = np.sqrt(v * np.pi) * scipy.special.gamma(v / 2)
-        out = a / b
+        a = gamma((v + 1) / 2)
+        b = np.sqrt(v * np.pi) * gamma(v / 2)
+        out = float(a / b)  # type: np.float64
 
         return out
