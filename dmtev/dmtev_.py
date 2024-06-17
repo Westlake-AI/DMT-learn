@@ -11,7 +11,7 @@ from pytorch_lightning import Trainer
 from lightning_fabric.utilities.seed import seed_everything
 import torch
 
-from .LitPatNN import LitPatNN
+from .LitPatNN_ import LitPatNN
 
 
 class DMTEV(BaseEstimator):
@@ -25,7 +25,7 @@ class DMTEV(BaseEstimator):
         seed_everything(seed)
         os.makedirs(checkpoint_path, exist_ok=True)
 
-        self._validate_parameters()
+        self._validate_parameters(**kwargs)
 
         if device_id is not None and torch.cuda.is_available():
             torch.set_float32_matmul_precision('high')
@@ -46,17 +46,17 @@ class DMTEV(BaseEstimator):
             device = torch.device("cpu")
         self.model = LitPatNN(device=device, epochs=epochs, **kwargs)
 
-    def _validate_parameters(self):
+    def _validate_parameters(self, **kwargs):
         pass
+
+    def fit_transform(self, X=None, y=None, feature_name=None, def_fea_aim=64):
+        self.model.adapt(X, y, feature_name, def_fea_aim)
+        self.trainer.fit(self.model)
+        return self.model.ins_emb
 
     # 暂不支持
     def fit(self, X, y=None):
         raise NotImplementedError
-
-    def fit_transform(self, X=None, y=None):
-        self.model.adapt(X)
-        self.trainer.fit(self.model)
-        return self.model.ins_emb
 
     # 暂不支持
     def transform(self, X):

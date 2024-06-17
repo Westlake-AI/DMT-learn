@@ -58,7 +58,7 @@ setup(
             "umap-learn",
             "scanpy"
         ]
-    },
+    }, 
     platforms=['linux_x86_64'],
     license='MIT',
     classifiers=[
