@@ -27,25 +27,26 @@ class LitPatNN(LightningModule):
         dataname:str="Common",
         device:device=device('cpu'),
         # model param
+        nu:float=1e-2,
+        num_fea_aim:int=-1,
+        K:int=5,
+        Uniform_t:float=1,  # 0.3
+        lr:float=1e-3,
+        # trainer param
+        batch_size:int=1000,
+        epochs:int=1500,
+        log_interval:int=300,
+        # set param
         metric:str="euclidean",
         detaalpha:float=1.001,
         l2alpha:float=10,
-        nu:float=1e-2,
-        num_fea_aim:int=64,
         num_fea_per_pat:int=80,  # 0.5
-        K:int=5,
-        Uniform_t:float=1,  # 0.3
         Bernoulli_t:float=-1,
         Normal_t:float=-1,
         # train param
         NetworkStructure_1:list=[-1, 200] + [200] * 5,
         NetworkStructure_2:list=[-1, 500, 80],
         augNearRate:float=1000,
-        # trainer param
-        log_interval:int=300,
-        batch_size:int=1000,
-        epochs:int=1500,
-        lr:float=1e-3,
         ):
 
         super().__init__()
@@ -119,6 +120,11 @@ class LitPatNN(LightningModule):
                 datapath=data_path,
             )
 
+        if len(self.data_train.data) < self.batch_size:
+            logging.debug(f"Batch size is larger than data size, eye size {self.batch_size} -> {self.data_train.data.shape[0]}")
+            self.batch_size = self.data_train.data.shape[0]
+            self.loss_eye = torch.eye(self.batch_size).to(self.my_device)
+
         if len(self.data_train.data.shape) == 2:
             self.data_train.cal_near_index(
                 device=self.my_device,
@@ -126,17 +132,19 @@ class LitPatNN(LightningModule):
                 uselabel=bool(self.uselabel),
             )
 
-        logging.info("my_device: {}".format(self.my_device))
+        logging.debug("my_device: {}".format(self.my_device))
         self.data_train.to_device(self.my_device)
         self.data_test.to_device(self.my_device)
 
         self.dims = self.data_train.get_dim()
         
         # adopt the network structure to the data
+        if self.num_fea_aim == -1:
+            self.num_fea_aim = self.data_train.data.shape[1]
         self.num_fea_aim = min(
             self.num_fea_aim, reduce(lambda x, y: x*y, self.data_train.data.shape[1:]) 
         )
-        logging.info(f"num_fea_aim: {self.num_fea_aim}")
+        logging.debug(f"num_fea_aim: {self.num_fea_aim}")
 
         if len(self.data_train.data.shape) > 2:
             self.transforms = transforms.AutoAugment(

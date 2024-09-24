@@ -26,10 +26,10 @@ class DMTEV(BaseEstimator):
         seed_everything(seed)
         os.makedirs(checkpoint_path, exist_ok=True)
 
-        self._validate_parameters(**kwargs)
+        self._validate_parameters(epochs=epochs, **kwargs)
 
         if device_id is not None and device_id >= 0 and torch.cuda.is_available():
-            logging.info("Using GPU")
+            logging.debug("Using GPU")
             torch.set_float32_matmul_precision('high')
             self.trainer = Trainer(
                 accelerator="gpu",
@@ -40,7 +40,7 @@ class DMTEV(BaseEstimator):
             )
             device = torch.device(f"cuda:{device_id}")
         else:
-            logging.info("Using CPU")
+            logging.debug("Using CPU")
             self.trainer = Trainer(
                 max_epochs=epochs,
                 logger=False,
@@ -50,7 +50,12 @@ class DMTEV(BaseEstimator):
         self.model = LitPatNN(device=device, epochs=epochs, **kwargs)
 
     def _validate_parameters(self, **kwargs):
-        pass
+        if kwargs['epochs'] < 10:
+            raise ValueError("epochs must be greater than or equal to 10")
+        if kwargs['num_fea_aim'] < -1:
+            raise ValueError("num_fea_aim must be greater than or equal to -1")
+        if 'metric' in kwargs.keys() and kwargs['metric'] not in ['euclidean', 'cossim']:
+            raise ValueError("metric must be 'euclidean' or 'cossim'")
 
     def fit_transform(self, X:np.ndarray|torch.Tensor) -> np.ndarray:
         if not isinstance(X, np.ndarray) and not isinstance(X, torch.Tensor):

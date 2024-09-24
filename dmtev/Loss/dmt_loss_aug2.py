@@ -63,7 +63,6 @@ class MyLoss(nn.Module):
         eye,
         metric='euclidean',
     ):
-
         data_1 = input_data[: input_data.shape[0] // 2]
         dis_P = self._DistanceSquared(data_1, eye=eye, metric=metric)
         # P_1 = self._Similarity(dist=dis_P,
@@ -188,7 +187,6 @@ class MyLoss(nn.Module):
                 dist = xx + yy
                 dist = torch.addmm(dist, mat1=x, mat2=x.t(), beta=1, alpha=-2)
                 dist = dist.clamp(min=1e-12)
-                eye = torch.eye(dist.shape[0]).to(self.device)
                 dist[eye == 1] = 1e-12
         
         if metric == "cossim":
