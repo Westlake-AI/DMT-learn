@@ -38,6 +38,7 @@ class DMTEV(BaseEstimator):
                 logger=False,
                 default_root_dir=checkpoint_path,
                 checkpoint_callback=False,
+                enable_checkpointing=False,
             )
             device = torch.device(f"cuda:{device_id}")
         else:
