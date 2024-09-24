@@ -67,8 +67,14 @@ class DMTEV(BaseEstimator):
 
     # 暂不支持
     def fit(self, X, y=None):
-        raise NotImplementedError
+        if not isinstance(X, np.ndarray) and not isinstance(X, torch.Tensor):
+            raise ValueError("X must be a numpy array or a torch tensor")
+
+        self.model.adapt(X)
+        self.trainer.fit(self.model)
+        
 
     # 暂不支持
     def transform(self, X):
-        raise NotImplementedError
+        _, _, lat3 = self.model(X)
+        return lat3.cpu().detach().numpy()
