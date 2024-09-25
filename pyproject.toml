@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=58.2.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = 'dmtev-learn'
+version = '0.0.4'
+description = 'An Explainable Deep Network for Dimension Reduction (EVNet)'
+readme = {file = "README.md", content-type = "text/markdown"}
+license = {file = "LICENSE.txt"}
+requires-python = ">=3.10"
+authors = [
+  { name="zangzelin", email="zangzelin@westlake.edu.cn" },
+]
+maintainers = [
+  {name = "masiqi", email = "masiqi@westlake.edu.cn"}
+]
+classifiers=[
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Environment :: GPU :: NVIDIA CUDA",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = ['pynndescent', 'scikit-learn', 'numpy', 'scanpy', 'torch>=2.1.2', 'torchaudio>=2.1.2', 'torchvision>=0.16.2', 'pytorch-lightning==1.9.0', 'lightning_fabric']
+
+[project.optional-dependencies]
+eval = ['pandas', 'plotly', 'matplotlib', 'umap-learn']
+
+[dynamic]
+keywords = ["dimension reduction manifold deep network"]
