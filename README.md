@@ -9,12 +9,10 @@ The code includes the following modules:
 
 ## Requirements
 
-* pytorch == 2.1.2
-* pytorch-lightning == 1.9.0
-* torchvision == 0.16.2
-* numpy == 1.26.2
-* scikit-learn == 1.3.2
-* wandb == 0.16.1
+* torch==2.3.1
+* torchaudio>=2.3.1
+* torchvision>=0.18.1
+* pytorch-lightning==2.4.0
 
 ## Description
 
@@ -35,8 +33,33 @@ The datasets include six simple image datasets ([Digits](https://scikit-learn.or
 
 ## Running the code
 
-``` bash
-bash main.sh
+``` python
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
+from sklearn.datasets import load_iris
+from dmtev.dmtev_ import DMTEV
+# Load sample dataset
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+# Perform t-SNE
+tsne = DMTEV(num_fea_aim=100)
+X_tsne = tsne.fit_transform(X)
+
+# Plot the result
+plt.figure(figsize=(8, 6))
+scatter = plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=y, cmap='viridis')
+
+# Create legend
+legend1 = plt.legend(*scatter.legend_elements(), title="Classes")
+plt.gca().add_artist(legend1)  # Add the legend to the current axes
+
+plt.title('t-SNE visualization of Iris dataset')
+plt.xlabel('t-SNE Component 1')
+plt.ylabel('t-SNE Component 2')
+plt.savefig('tsne.png')
 ```
 
 ## 
