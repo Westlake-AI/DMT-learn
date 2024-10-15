@@ -102,7 +102,7 @@ class DMTEV(BaseEstimator):
             logging.debug("Plotting")
             if not isinstance(plot, str):
                 raise ValueError("plot must be a path")
-            if not os.path.exists(os.path.dirname(plot)):
+            if len(os.path.dirname(plot)) > 0 and not os.path.exists(os.path.dirname(plot)):
                 os.makedirs(os.path.dirname(plot))
             import matplotlib.pyplot as plt
             fig, ax = plt.subplots(1, 3, figsize=(15, 5))
