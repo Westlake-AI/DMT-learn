@@ -9,16 +9,19 @@ The code includes the following modules:
 
 ## Requirements
 
-* pytorch == 2.1.2
-* pytorch-lightning == 1.9.0
-* torchvision == 0.16.2
-* numpy == 1.26.2
-* scikit-learn == 1.3.2
+* torch==2.3.1
+* torchaudio>=2.3.1
+* torchvision>=0.18.1
+* pytorch-lightning==2.4.0
 
 ## Installation
-
+Install from source:
 ```bash
 pip install -e .
+```
+Install from PyPI:
+```bash
+pip install dmtev-learn
 ```
 
 ## Running the code

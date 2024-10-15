@@ -3,10 +3,10 @@ scikit-learn
 numpy
 scanpy
 
-torch>=2.1.2
-torchaudio>=2.1.2
-torchvision>=0.16.2
-pytorch-lightning==1.9.0
+torch==2.3.1
+torchaudio>=2.3.1
+torchvision>=0.18.1
+pytorch-lightning==2.4.0
 
 lightning_fabric
 
