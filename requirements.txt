@@ -18,5 +18,5 @@ lightning_fabric
 
 # pandas
 # plotly
-# umap-learn
+umap-learn
 # matplotlib
