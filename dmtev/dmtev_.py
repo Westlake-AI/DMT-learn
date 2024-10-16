@@ -77,7 +77,7 @@ class DMTEV(BaseEstimator):
         self.trainer.fit(self.model)
         
     def transform(self, X):
-        _, _, lat3 = self.model(X)
+        _, _, lat3 = self.model(torch.tensor(X).float())
         return lat3.cpu().detach().numpy()
     
     def compare(self, X, plot=None):
