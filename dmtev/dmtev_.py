@@ -5,12 +5,11 @@ from sklearn.manifold import TSNE
 from sklearn.metrics import pairwise_distances
 from sklearn.preprocessing import normalize
 
-from lightning_fabric.utilities.seed import seed_everything
 import numpy as np
 import os
 from os import PathLike
-# from pytorch_lightning import Trainer
 from lightning import Trainer
+from lightning import seed_everything
 import torch
 import logging
 import umap

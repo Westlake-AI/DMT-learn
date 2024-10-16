@@ -15,6 +15,13 @@ The code includes the following modules:
 * pytorch-lightning==2.4.0
 
 ## Installation
+Create a new conda environment and install torch, torchvision, torchaudio:
+```bash
+conda create -n dmtev python=3.10
+conda activate dmtev
+pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https://download.pytorch.org/whl/cu121
+```
+Then you can install the package from source or from PyPI.
 Install from source:
 ```bash
 pip install -e .

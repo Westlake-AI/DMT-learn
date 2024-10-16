@@ -24,10 +24,10 @@ classifiers=[
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering",
 ]
-dependencies = ['pynndescent', 'scikit-learn', 'numpy', 'scanpy', 'torch>=2.1.2', 'torchaudio>=2.1.2', 'torchvision>=0.16.2', 'pytorch-lightning==1.9.0', 'lightning_fabric', 'umap-learn']
+dependencies = ['pynndescent', 'scikit-learn', 'numpy', 'matplotlib', 'tqdm', 'fsspec', 'numba', 'scanpy', 'torch==2.3.1', 'torchaudio>=2.3.1', 'torchvision>=0.18.1', 'lightning==2.4.0', 'umap-learn']
 
 [project.optional-dependencies]
-eval = ['pandas', 'plotly', 'matplotlib', 'umap-learn']
+eval = ['pandas', 'plotly', 'matplotlib']
 
 [dynamic]
 keywords = ["dimension reduction manifold deep network"]
