@@ -9,7 +9,8 @@ from lightning_fabric.utilities.seed import seed_everything
 import numpy as np
 import os
 from os import PathLike
-from pytorch_lightning import Trainer
+# from pytorch_lightning import Trainer
+from lightning import Trainer
 import torch
 import logging
 import umap
@@ -24,9 +25,6 @@ class DMTEV(BaseEstimator):
                  device_id:int|None=None,
                  checkpoint_path: PathLike|None="./",
                  **kwargs) -> None:
-        '''
-        
-        '''
         super().__init__()
         seed_everything(seed)
         os.makedirs(checkpoint_path, exist_ok=True)
@@ -69,7 +67,8 @@ class DMTEV(BaseEstimator):
 
         self.model.adapt(X)
         self.trainer.fit(self.model)
-        return self.model.ins_emb
+        _, _, lat3 = self.model(torch.tensor(X).float())
+        return lat3.cpu().detach().numpy()
 
     def fit(self, X, y=None):
         if not isinstance(X, np.ndarray) and not isinstance(X, torch.Tensor):
@@ -85,7 +84,7 @@ class DMTEV(BaseEstimator):
     def compare(self, X, plot=None):
         '''
         Compare the embeddings of DMT-EV, UMAP and TSNE
-        X: np.ndarray or torch.Tensor
+        
         '''
                 
         if not isinstance(X, np.ndarray) and not isinstance(X, torch.Tensor):
@@ -102,7 +101,7 @@ class DMTEV(BaseEstimator):
             logging.debug("Plotting")
             if not isinstance(plot, str):
                 raise ValueError("plot must be a path")
-            if len(os.path.dirname(plot)) > 0 and not os.path.exists(os.path.dirname(plot)):
+            if not os.path.exists(os.path.dirname(plot)):
                 os.makedirs(os.path.dirname(plot))
             import matplotlib.pyplot as plt
             fig, ax = plt.subplots(1, 3, figsize=(15, 5))
@@ -113,9 +112,3 @@ class DMTEV(BaseEstimator):
             ax[2].scatter(tsne_embedding[:, 0], tsne_embedding[:, 1])
             ax[2].set_title("TSNE")
             plt.savefig(plot)
-
-        return {
-            "dmt_embedding": dmt_embedding,
-            "umap_embedding": umap_embedding,
-            "tsne_embedding": tsne_embedding
-        }

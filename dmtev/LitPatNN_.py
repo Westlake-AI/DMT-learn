@@ -3,7 +3,8 @@ from functools import reduce
 import numpy as np
 from numpy import ndarray
 import os
-from pytorch_lightning import LightningModule
+# from pytorch_lightning import LightningModule
+from lightning import LightningModule
 import torch
 from torch import nn, device
 from torch.optim.lr_scheduler import StepLR
@@ -257,37 +258,37 @@ class LitPatNN(LightningModule):
         loss_l2 = torch.abs(PatM).mean()
         return loss_l2
 
-    def validation_epoch_end(self, outputs):
-        if not self.stop:
-            logging.debug(f"es_monitor: {self.current_epoch}")
-        else:
-            logging.debug(f"es_monitor: 0")
+    # def on_validation_epoch_end(self):
+    #     if not self.stop:
+    #         logging.debug(f"es_monitor: {self.current_epoch}")
+    #     else:
+    #         logging.debug(f"es_monitor: 0")
 
-        if (self.current_epoch + 1) % self.log_interval == 0:
-            logging.debug(f"self.current_epoch: {self.current_epoch}")
-            data = np.concatenate([data_item[0] for data_item in outputs])
-            mid_old = np.concatenate([data_item[1] for data_item in outputs])
-            ins_emb = np.concatenate([data_item[2] for data_item in outputs])
-            index = np.concatenate([data_item[3] for data_item in outputs])
+    #     if (self.current_epoch + 1) % self.log_interval == 0:
+    #         logging.debug(f"self.current_epoch: {self.current_epoch}")
+    #         data = np.concatenate([data_item[0] for data_item in outputs])
+    #         mid_old = np.concatenate([data_item[1] for data_item in outputs])
+    #         ins_emb = np.concatenate([data_item[2] for data_item in outputs])
+    #         index = np.concatenate([data_item[3] for data_item in outputs])
 
-            self.data = data
-            self.mid_old = mid_old
-            self.ins_emb = ins_emb
-            self.index = index
+    #         self.data = data
+    #         self.mid_old = mid_old
+    #         self.ins_emb = ins_emb
+    #         self.index = index
 
-            N_link = np.sum(gpu2np(self.mask))
-            feature_use_bool = gpu2np(self.mask) > 0
-            N_Feature = np.sum(feature_use_bool)
+    #         N_link = np.sum(gpu2np(self.mask))
+    #         feature_use_bool = gpu2np(self.mask) > 0
+    #         N_Feature = np.sum(feature_use_bool)
 
-            # import pdb; pdb.set_trace()
+    #         # import pdb; pdb.set_trace()
               
-            if N_Feature <= self.num_fea_aim:
-                self.stop = True
-            else:
-                self.stop = False
+    #         if N_Feature <= self.num_fea_aim:
+    #             self.stop = True
+    #         else:
+    #             self.stop = False
 
-        else:
-            logging.debug(f"SVC: 0")
+    #     else:
+    #         logging.debug(f"SVC: 0")
 
     def test_step(self, batch, batch_idx):
         # Here we just reuse the validation_step for testing
