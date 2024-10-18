@@ -9,7 +9,7 @@ The code includes the following modules:
 
 ## Requirements
 
-* torch==2.3.1
+* torch>=2.3.1
 * torchaudio>=2.3.1
 * torchvision>=0.18.1
 * pytorch-lightning==2.4.0

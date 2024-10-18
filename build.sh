@@ -6,4 +6,4 @@
 # python -m build --wheel
 
 # upload to testpypi
-twine upload -r testpypi dist/dmtev_learn-0.0.6-py3-none-any.whl --verbose
+twine upload -r testpypi dist/dmtev_learn-$1-py3-none-any.whl --verbose
