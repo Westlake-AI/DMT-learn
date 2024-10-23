@@ -1,9 +1,6 @@
 from sklearn.base import BaseEstimator
-from sklearn.utils import check_random_state, check_array
-from sklearn.utils.validation import check_is_fitted
+from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
-from sklearn.metrics import pairwise_distances
-from sklearn.preprocessing import normalize
 
 import numpy as np
 import os
@@ -24,11 +21,33 @@ class DMTEV(BaseEstimator):
                  device_id:int|None=None,
                  checkpoint_path: PathLike|None="./",
                  **kwargs) -> None:
+        '''
+        The method explains the relationships and characteristics of the data. It can generate one-to-one, well-formed scatter plots that reveal relationships within the data. It can explain the characteristics of the data from global, local, and transfer perspectives.
+        @article{zang2023evnet,
+            title={Evnet: An explainable deep network for dimension reduction},
+            author={Zang, Zelin and Cheng, Shenghui and Lu, Linyan and Xia, Hanchen and Li, Liangyu and Sun, Yaoting and Xu, Yongjie and Shang, Lei and Sun, Baigui and Li, Stan Z},
+            journal={IEEE Transactions on Visualization and Computer Graphics},
+            year={2023},
+            publisher={IEEE}
+        }
+        Parameters
+        ----------
+        seed : int, optional
+            Random seed, by default 1
+        epochs : int, optional
+            Number of epochs, by default 1500
+        device_id : int, optional
+            Device id, by default None
+        checkpoint_path : PathLike, optional
+            Checkpoint path, by default "./"
+        num_fea_aim : float or -1, optional
+            Proportion of target's characteristics selected, by default -1
+        '''
         super().__init__()
         seed_everything(seed)
         os.makedirs(checkpoint_path, exist_ok=True)
 
-        self._validate_parameters(epochs=epochs, **kwargs)
+        self._validate_parameters(epochs=epochs, device_id=device_id, checkpoint_path=checkpoint_path, **kwargs)
 
         if device_id is not None and device_id >= 0 and torch.cuda.is_available():
             logging.debug("Using GPU")
@@ -53,14 +72,30 @@ class DMTEV(BaseEstimator):
         self.model = LitPatNN(device=device, epochs=epochs, **kwargs)
 
     def _validate_parameters(self, **kwargs):
+        if kwargs['device_id'] is not None and (kwargs['device_id'] < 0 or kwargs['device_id'] >= torch.cuda.device_count()):
+            raise ValueError("device_id must be greater than or equal to 0 and less than the number of GPUs")
         if kwargs['epochs'] < 10:
             raise ValueError("epochs must be greater than or equal to 10")
         if kwargs['num_fea_aim'] < -1:
             raise ValueError("num_fea_aim must be greater than or equal to -1")
-        if 'metric' in kwargs.keys() and kwargs['metric'] not in ['euclidean', 'cossim']:
+        if 'metric' in kwargs and kwargs['metric'] not in ['euclidean', 'cossim']:
             raise ValueError("metric must be 'euclidean' or 'cossim'")
+        if kwargs['num_fea_aim'] != -1 and kwargs['num_fea_aim'] < 0 or kwargs['num_fea_aim'] > 1:
+            raise ValueError("num_fea_aim must be greater than or equal to -1 and less than or equal to 1")
 
     def fit_transform(self, X:np.ndarray|torch.Tensor) -> np.ndarray:
+        '''
+        Fit the model and transform the input data
+        Parameters
+        ----------
+        X : np.ndarray or torch.Tensor
+            The input data
+        Returns
+        -------
+        np.ndarray
+            The transformed data
+        '''
+        
         if not isinstance(X, np.ndarray) and not isinstance(X, torch.Tensor):
             raise ValueError("X must be a numpy array or a torch tensor")
 
@@ -69,7 +104,14 @@ class DMTEV(BaseEstimator):
         _, _, lat3 = self.model(torch.tensor(X).float())
         return lat3.cpu().detach().numpy()
 
-    def fit(self, X, y=None):
+    def fit(self, X):
+        '''
+        Fit the model
+        Parameters
+        ----------
+        X : np.ndarray or torch.Tensor
+            The input data
+        '''
         if not isinstance(X, np.ndarray) and not isinstance(X, torch.Tensor):
             raise ValueError("X must be a numpy array or a torch tensor")
 
@@ -77,13 +119,35 @@ class DMTEV(BaseEstimator):
         self.trainer.fit(self.model)
         
     def transform(self, X):
+        '''
+        Transform the input data
+        Parameters
+        ----------
+        X : np.ndarray or torch.Tensor
+            The input data
+        Returns
+        -------
+        np.ndarray
+            The transformed data
+        '''
+        if not isinstance(X, np.ndarray) and not isinstance(X, torch.Tensor):
+            raise ValueError("X must be a numpy array or a torch tensor")
         _, _, lat3 = self.model(torch.tensor(X).float())
         return lat3.cpu().detach().numpy()
     
     def compare(self, X, plot=None):
         '''
-        Compare the embeddings of DMT-EV, UMAP and TSNE
-        
+        Compare the embeddings of DMT-EV, UMAP, TSNE and PCA
+        Parameters
+        ----------
+        X : np.ndarray or torch.Tensor
+            The input data
+        plot : str, optional
+            The path to save the plot, by default None
+        Returns
+        -------
+        tuple
+            The embeddings of DMT-EV, UMAP, TSNE and PCA
         '''
                 
         if not isinstance(X, np.ndarray) and not isinstance(X, torch.Tensor):
@@ -95,6 +159,8 @@ class DMTEV(BaseEstimator):
         umap_embedding = umap.UMAP().fit_transform(X)
         logging.debug("Start TSNE")
         tsne_embedding = TSNE().fit_transform(X)
+        logging.debug("Start PCA")
+        pca_embedding = PCA().fit_transform(X)
         
         if plot:
             logging.debug("Plotting")
@@ -103,11 +169,16 @@ class DMTEV(BaseEstimator):
             if len(os.path.dirname(plot)) > 0 and not os.path.exists(os.path.dirname(plot)):
                 os.makedirs(os.path.dirname(plot))
             import matplotlib.pyplot as plt
-            fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+            fig, ax = plt.subplots(1, 4, figsize=(20, 5))
             ax[0].scatter(dmt_embedding[:, 0], dmt_embedding[:, 1])
             ax[0].set_title("DMTEV")
             ax[1].scatter(umap_embedding[:, 0], umap_embedding[:, 1])
             ax[1].set_title("UMAP")
             ax[2].scatter(tsne_embedding[:, 0], tsne_embedding[:, 1])
             ax[2].set_title("TSNE")
+            ax[3].scatter(pca_embedding[:, 0], pca_embedding[:, 1])
+            ax[3].set_title("PCA")
             plt.savefig(plot)
+
+        return dmt_embedding, umap_embedding, tsne_embedding, pca_embedding
+    
