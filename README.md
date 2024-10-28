@@ -58,9 +58,9 @@ scatter = plt.scatter(X_dmt[:, 0], X_dmt[:, 1], c=y, cmap='viridis')
 legend1 = plt.legend(*scatter.legend_elements(), title="Classes")
 plt.gca().add_artist(legend1)  # Add the legend to the current axes
 
-plt.title('DMT-EV visualization of Iris dataset')
-plt.xlabel('DMT-EV Component 1')
-plt.ylabel('DMT-EV Component 2')
+plt.title('DMT visualization of Iris dataset')
+plt.xlabel('DMT Component 1')
+plt.ylabel('DMT Component 2')
 plt.savefig('dmt.png')
 ```
 You can alse separate the training and inference steps:
@@ -88,4 +88,4 @@ dmt.compare(X, "comparison.png")
 
 ## License
 
-EVNet is released under the MIT license.
+DMT is released under the MIT license.
