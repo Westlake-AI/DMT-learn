@@ -4,7 +4,7 @@
 The code includes the following modules:
 * Training
 * Inference
-* Comparison with t-SNE and UMAP
+* Comparison with t-SNE, UMAP and PCA
 
 
 ## Requirements
@@ -13,6 +13,7 @@ The code includes the following modules:
 * torchaudio>=2.3.1
 * torchvision>=0.18.1
 * pytorch-lightning==2.4.0
+
 
 ## Installation
 Create a new conda environment and install torch, torchvision, torchaudio:
@@ -24,7 +25,7 @@ pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https
 Then you can install the package from source or from PyPI.
 Install from source:
 ```bash
-pip install -e .
+pip install -e git+https://github.com/Westlake-AI/DMTEV-learn.git#egg=dmtev-learn
 ```
 Install from PyPI:
 ```bash
@@ -62,6 +63,11 @@ plt.xlabel('DMT-EV Component 1')
 plt.ylabel('DMT-EV Component 2')
 plt.savefig('dmt.png')
 ```
+You can alse separate the training and inference steps:
+```python
+dmt.fit(X)
+X_dmt = dmt.transform(X)
+```
 If you want to compare the results with other dimension reduction methods(t-SNE, UMAP), you can use the following code:
 ```python
 dmt.compare(X, "comparison.png")
@@ -78,7 +84,6 @@ dmt.compare(X, "comparison.png")
   publisher={IEEE}
 }
 ```
-
 
 
 ## License

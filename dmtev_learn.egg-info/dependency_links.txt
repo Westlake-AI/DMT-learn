@@ -1,0 +1,3 @@
+https://download.pytorch.org/whl/cu118/torch
+https://download.pytorch.org/whl/cu118/torchvision
+https://download.pytorch.org/whl/cu118/torchaudio

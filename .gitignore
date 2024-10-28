@@ -12,7 +12,6 @@ data/
 .vscode/
 build/
 dist/
-*.egg-info/
 /*.py
 requirements.txt
 run_sweep.sh
