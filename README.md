@@ -1,5 +1,5 @@
 
-# EVNet: An Explainable Deep Network for Dimension Reduction (EVNet)
+# DMT: An Explainable Deep Network for Dimension Reduction
 
 The code includes the following modules:
 * Training
@@ -18,18 +18,18 @@ The code includes the following modules:
 ## Installation
 Create a new conda environment and install torch, torchvision, torchaudio:
 ```bash
-conda create -n dmtev python=3.10
-conda activate dmtev
+conda create -n DMT python=3.10
+conda activate DMT
 pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https://download.pytorch.org/whl/cu121
 ```
 Then you can install the package from source or from PyPI.
 Install from source:
 ```bash
-pip install -e git+https://github.com/Westlake-AI/DMTEV-learn.git#egg=dmtev-learn
+pip install -e git+https://github.com/Westlake-AI/DMT-learn.git#egg=dmt-learn
 ```
 Install from PyPI:
 ```bash
-pip install dmtev-learn
+pip install dmt-learn
 ```
 
 ## Running the code
@@ -39,7 +39,7 @@ Use the following code to fit the model to the dataset and visualize the results
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.datasets import load_iris
-from dmtev import DMTEV
+from dmt import DMT
 
 # Load sample dataset
 iris = load_iris()
@@ -47,7 +47,7 @@ X = iris.data
 y = iris.target
 
 # Perform t-SNE
-dmt = DMTEV(num_fea_aim=100)
+dmt = DMT(num_fea_aim=100)
 X_dmt = dmt.fit_transform(X)
 
 # Plot the result

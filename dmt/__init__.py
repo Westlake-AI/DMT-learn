@@ -1,8 +1,8 @@
-from .dmtev_ import DMTEV
+from .dmt_ import DMT
 import os
 import sys
 
-__all__ = ["DMTEV"]
+__all__ = ["DMT"]
 __version__ = '0.0.8'
 
 if os.name != 'posix':

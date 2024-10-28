@@ -3,7 +3,7 @@ requires = ["setuptools>=58.2.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = 'dmtev-learn'
+name = 'dmt-learn'
 dynamic = ["version"]
 description = 'An Explainable Deep Network for Dimension Reduction (EVNet)'
 readme = {file = "README.md", content-type = "text/markdown"}
@@ -50,4 +50,4 @@ eval = ['pandas', 'plotly']
 keywords = ["dimension reduction manifold deep network"]
 
 [tool.setuptools.dynamic]
-version = { attr = "dmtev.__version__" }
+version = { attr = "dmt.__version__" }

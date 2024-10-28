@@ -14,7 +14,7 @@ import umap
 from .LitPatNN_ import LitPatNN
 
 
-class DMTEV(BaseEstimator):
+class DMT(BaseEstimator):
     def __init__(self,
                  seed:int=1,
                  epochs:int=1500,
@@ -171,7 +171,7 @@ class DMTEV(BaseEstimator):
             import matplotlib.pyplot as plt
             fig, ax = plt.subplots(1, 4, figsize=(20, 5))
             ax[0].scatter(dmt_embedding[:, 0], dmt_embedding[:, 1])
-            ax[0].set_title("DMTEV")
+            ax[0].set_title("DMT")
             ax[1].scatter(umap_embedding[:, 0], umap_embedding[:, 1])
             ax[1].set_title("UMAP")
             ax[2].scatter(tsne_embedding[:, 0], tsne_embedding[:, 1])
