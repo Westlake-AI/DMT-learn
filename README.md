@@ -75,13 +75,20 @@ dmt.compare(X, "comparison.png")
 
 ## Example Results
 
+The code is in [example](https://github.com/zangzelin/example_dmtlearn.git).
+
 ### Mnist Dataset
 
 ![mnist dataset](example/pic/mnist.png)
 
 ### breast_cancer Dataset
 
-![mnist dataset](example/pic/breast_cancer.png)
+![breast_cancer dataset](example/pic/breast_cancer.png)
+
+### 20News Dataset
+
+![20News dataset](example/pic/20News.png)
+
 
 ## Cite the paper
 
