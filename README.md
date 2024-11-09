@@ -73,6 +73,16 @@ If you want to compare the results with other dimension reduction methods(t-SNE,
 dmt.compare(X, "comparison.png")
 ```
 
+## Example Results
+
+### Mnist Dataset
+
+![mnist dataset](example/pic/mnist.png)
+
+### breast_cancer Dataset
+
+![mnist dataset](example/pic/breast_cancer.png)
+
 ## Cite the paper
 
 ```
