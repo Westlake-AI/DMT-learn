@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = 'dmtppi-learn'
 dynamic = ["version"]
-description = 'An Explainable Deep Network for Dimension Reduction (EVNet)'
+description = 'Deep Manifold Transformation for Protein Representation Learning(DMTPRL)'
 readme = {file = "README.md", content-type = "text/markdown"}
 license = {file = "LICENSE.txt"}
 requires-python = ">=3.10"
 authors = [
-  { name="zangzelin", email="zangzelin@westlake.edu.cn" },
+  { name="zangzelin, hubozhen", email="zangzelin@westlake.edu.cn, hubozhen@westlake.edu.cn" },
 ]
 maintainers = [
   {name = "masiqi", email = "masiqi@westlake.edu.cn"}
