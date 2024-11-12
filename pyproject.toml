@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=58.2.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = 'dmtppi-learn'
+dynamic = ["version"]
+description = 'An Explainable Deep Network for Dimension Reduction (EVNet)'
+readme = {file = "README.md", content-type = "text/markdown"}
+license = {file = "LICENSE.txt"}
+requires-python = ">=3.10"
+authors = [
+  { name="zangzelin", email="zangzelin@westlake.edu.cn" },
+]
+maintainers = [
+  {name = "masiqi", email = "masiqi@westlake.edu.cn"}
+]
+classifiers=[
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Environment :: GPU :: NVIDIA CUDA",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Operating System :: POSIX :: Linux",
+]
+dependencies = [
+  'pynndescent',
+  'scikit-learn',
+  'numpy',
+  'matplotlib',
+  'tqdm',
+  'fsspec',
+  'numba',
+  'scanpy',
+  'torch>=2.3.1',
+  'torchaudio>=2.3.1',
+  'torchvision>=0.18.1',
+  'lightning==2.4.0',
+  'umap-learn',
+  'torch-cluster',
+  'torch-geometric',
+  'torch-scatter',
+  'hjson',
+  'lmdb',
+  'PyYAML',
+  'scipy',
+  'tqdm'
+]
+
+[project.optional-dependencies]
+eval = ['pandas', 'plotly']
+
+[dynamic]
+keywords = ["dimension reduction manifold deep network"]
+
+[tool.setuptools.dynamic]
+version = { attr = "dmt.__version__" }
