@@ -20,6 +20,8 @@ Details please see requirements.txt
 ## Downstream Task
 PPI task
 
+download the dataset from this Github Releases, put data in the ./data directory. Then,
+
 Running the code:
 
 ```
