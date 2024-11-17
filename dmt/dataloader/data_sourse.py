@@ -1,6 +1,5 @@
 from torch import tensor
 from torch.utils import data
-import torchvision.datasets as datasets
 from sklearn.datasets import load_digits
 from pynndescent import NNDescent
 import logging
@@ -11,7 +10,6 @@ import numpy as np
 import scipy
 import tempfile
 from sklearn.decomposition import PCA
-# import PoolRunner
 from sklearn.metrics import pairwise_distances
 
 from . import cal_sigma as cal_sigma
@@ -36,7 +34,6 @@ class DigitsDataset(data.Dataset):
 
     def cal_near_index(self, k=10, device="cuda", uselabel=False):
         
-        # os.makedirs("save_near_index", exist_ok=True)
         filename = "data_name{}K{}uselabel{}".format(
             self.data_name, k, uselabel)
         with tempfile.NamedTemporaryFile() as file:
@@ -55,10 +52,6 @@ class DigitsDataset(data.Dataset):
                 M = np.repeat(self.label.reshape(1, -1), X_rshaped.shape[0], axis=0)
                 dis[(M-M.T)!=0] = dis.max()+1
                 neighbors_index = dis.argsort(axis=1)[:, 1:k+1]
-            # joblib.dump(value=neighbors_index, filename=filename)
-            # joblib.dump(value=neighbors_index, filename=file.name)
-            # logging.debug(f"save data to {filename}")
-        # import pdb; pdb.set_trace()
         self.neighbors_index = tensor(neighbors_index).to(device)
 
     def train_val_split(self, data, label, train, split_int = 4):
@@ -76,9 +69,13 @@ class DigitsDataset(data.Dataset):
 
     def to_device(self, device):
         self.data = self.data.to(device)
+        self.batchhot = self.batchhot.to(device)
+        self.neighbors_index = self.neighbors_index.to(device)
 
     def __getitem__(self, index):
-        return index
+        data_item = self.data[index]
+        batch_item = self.batchhot[index]
+        return data_item, batch_item, index
 
     def __len__(self):
         return self.data.shape[0]
@@ -111,11 +108,6 @@ class DigitsDataset(data.Dataset):
             X_rshaped = PCA(n_components=50).fit_transform(X_rshaped)
             logging.debug('--------------->PCA {}'.format(X_rshaped.shape))
 
-        # index = NNDescent(X_rshaped, n_jobs=-1,)
-        # neighbors_index, neighbors_dist = index.query(X_rshaped, k=K )
-        # neighbors_dist = np.power(neighbors_dist, 2)
-        # rho = neighbors_dist[:, 1]
-
         dist = np.power(
             pairwise_distances(
                 X.reshape((X.shape[0],-1)),
@@ -138,9 +130,5 @@ class DigitsDataset(data.Dataset):
         std_dis = np.std(rho) / np.sqrt(X.shape[1])
         logging.debug('sigma: {}'.format(sigma))
         logging.debug('sigma max {}'.format(np.max(sigma)))
-        # if std_dis < 0.20 or self.same_sigma is True:
-        #     # sigma[:] = sigma.mean() * 5
-        #     sigma[:] = sigma.mean()
-        # logging.debug('sigma', sigma)
         return rho, sigma
 

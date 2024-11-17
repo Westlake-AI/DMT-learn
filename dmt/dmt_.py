@@ -5,30 +5,35 @@ from sklearn.manifold import TSNE
 import numpy as np
 import os
 from os import PathLike
-from lightning import Trainer
-from lightning import seed_everything
+from pytorch_lightning import Trainer
+from pytorch_lightning import seed_everything
 import torch
 import logging
 import umap
+import scanpy as sc
+import anndata
 
 from .LitPatNN_ import LitPatNN
 
 
-class DMT(BaseEstimator):
+class DMT_DV(BaseEstimator):
     def __init__(self,
                  seed:int=1,
-                 epochs:int=1500,
+                 epochs:int=300, # 1500
                  device_id:int|None=None,
                  checkpoint_path: PathLike|None="./",
                  **kwargs) -> None:
         '''
         The method explains the relationships and characteristics of the data. It can generate one-to-one, well-formed scatter plots that reveal relationships within the data. It can explain the characteristics of the data from global, local, and transfer perspectives.
-        @article{zang2023evnet,
-            title={Evnet: An explainable deep network for dimension reduction},
-            author={Zang, Zelin and Cheng, Shenghui and Lu, Linyan and Xia, Hanchen and Li, Liangyu and Sun, Yaoting and Xu, Yongjie and Shang, Lei and Sun, Baigui and Li, Stan Z},
-            journal={IEEE Transactions on Visualization and Computer Graphics},
-            year={2023},
-            publisher={IEEE}
+        @article{xu2023structure,
+        title={Structure-preserving visualization for single-cell RNA-Seq profiles using deep manifold transformation with batch-correction},
+        author={Xu, Yongjie and Zang, Zelin and Xia, Jun and Tan, Cheng and Geng, Yulan and Li, Stan Z},
+        journal={Communications Biology},
+        volume={6},
+        number={1},
+        pages={369},
+        year={2023},
+        publisher={Nature Publishing Group UK London}
         }
         Parameters
         ----------
@@ -40,8 +45,8 @@ class DMT(BaseEstimator):
             Device id, by default None
         checkpoint_path : PathLike, optional
             Checkpoint path, by default "./"
-        num_fea_aim : float or -1, optional
-            Proportion of target's characteristics selected, by default -1
+        num_fea_aim : str, optional
+            Manifold space ("Euclidean", "PoincareBall", "Hyperboloid") of embeddings, by default "Euclidean"
         '''
         super().__init__()
         seed_everything(seed)
@@ -76,20 +81,22 @@ class DMT(BaseEstimator):
             raise ValueError("device_id must be greater than or equal to 0 and less than the number of GPUs")
         if kwargs['epochs'] < 10:
             raise ValueError("epochs must be greater than or equal to 10")
-        if kwargs['num_fea_aim'] < -1:
-            raise ValueError("num_fea_aim must be greater than or equal to -1")
+        # if kwargs['num_fea_aim'] < -1:
+        #     raise ValueError("num_fea_aim must be greater than or equal to -1")
         if 'metric' in kwargs and kwargs['metric'] not in ['euclidean', 'cossim']:
             raise ValueError("metric must be 'euclidean' or 'cossim'")
-        if kwargs['num_fea_aim'] != -1 and kwargs['num_fea_aim'] < 0 or kwargs['num_fea_aim'] > 1:
-            raise ValueError("num_fea_aim must be greater than or equal to -1 and less than or equal to 1")
+        # if kwargs['num_fea_aim'] != -1 and kwargs['num_fea_aim'] < 0 or kwargs['num_fea_aim'] > 1:
+        #     raise ValueError("num_fea_aim must be greater than or equal to -1 and less than or equal to 1")
 
-    def fit_transform(self, X:np.ndarray|torch.Tensor) -> np.ndarray:
+    def fit_transform(self, X:np.ndarray|torch.Tensor, label_batch:np.ndarray|torch.Tensor=None) -> np.ndarray:
         '''
         Fit the model and transform the input data
         Parameters
         ----------
         X : np.ndarray or torch.Tensor
             The input data
+        label_batch : np.ndarray or torch.Tensor
+            The input batch label
         Returns
         -------
         np.ndarray
@@ -98,13 +105,31 @@ class DMT(BaseEstimator):
         
         if not isinstance(X, np.ndarray) and not isinstance(X, torch.Tensor):
             raise ValueError("X must be a numpy array or a torch tensor")
-
-        self.model.adapt(X)
+        if label_batch is not None and not isinstance(label_batch, np.ndarray) and not isinstance(label_batch, torch.Tensor):
+            raise ValueError("label_batch must be a numpy array or a torch tensor")
+        
+        if not isinstance(label_batch, np.ndarray):
+            label_batch = np.zeros((X.shape[0], 1))
+        self.model.adapt(X, label_batch)
         self.trainer.fit(self.model)
-        _, _, lat3 = self.model(torch.tensor(X).float())
-        return lat3.cpu().detach().numpy()
 
-    def fit(self, X):
+        data = np.array(X).astype(np.float32)
+        sadata = anndata.AnnData(X=data)
+        sc.pp.normalize_per_cell(sadata, counts_per_cell_after=1e4)
+        sadata = sc.pp.log1p(sadata, copy=True)
+        if data.shape[1] > 50 and data.shape[0] > 50:
+            sc.tl.pca(sadata, n_comps=50)
+            data = sadata.obsm['X_pca'].copy()
+        else:
+            data = sadata.X.copy()
+
+        _, _, lat3 = self.model(torch.tensor(data).float())
+        lat3 = lat3.cpu().detach().numpy()
+        if lat3.shape[1] == 3:
+            lat3 = lat3[:, 1:3] / np.expand_dims(1 + lat3[:, 0], axis=1)
+        return lat3
+
+    def fit(self, X, label_batch):
         '''
         Fit the model
         Parameters
@@ -114,8 +139,12 @@ class DMT(BaseEstimator):
         '''
         if not isinstance(X, np.ndarray) and not isinstance(X, torch.Tensor):
             raise ValueError("X must be a numpy array or a torch tensor")
-
-        self.model.adapt(X)
+        if label_batch is not None and not isinstance(label_batch, np.ndarray) and not isinstance(label_batch, torch.Tensor):
+            raise ValueError("label_batch must be a numpy array or a torch tensor")
+        
+        if not isinstance(label_batch, np.ndarray):
+            label_batch = np.zeros((X.shape[0], 1))
+        self.model.adapt(X, label_batch)
         self.trainer.fit(self.model)
         
     def transform(self, X):
@@ -132,12 +161,25 @@ class DMT(BaseEstimator):
         '''
         if not isinstance(X, np.ndarray) and not isinstance(X, torch.Tensor):
             raise ValueError("X must be a numpy array or a torch tensor")
-        _, _, lat3 = self.model(torch.tensor(X).float())
-        return lat3.cpu().detach().numpy()
+        data = np.array(X).astype(np.float32)
+        sadata = anndata.AnnData(X=data)
+        sc.pp.normalize_per_cell(sadata, counts_per_cell_after=1e4)
+        sadata = sc.pp.log1p(sadata, copy=True)
+        if data.shape[1] > 50 and data.shape[0] > 50:
+            sc.tl.pca(sadata, n_comps=50)
+            data = sadata.obsm['X_pca'].copy()
+        else:
+            data = sadata.X.copy()
+
+        _, _, lat3 = self.model(torch.tensor(data).float())
+        lat3 = lat3.cpu().detach().numpy()
+        if lat3.shape[1] == 3:
+            lat3 = lat3[:, 1:3] / np.expand_dims(1 + lat3[:, 0], axis=1)
+        return lat3
     
-    def compare(self, X, plot=None):
+    def compare(self, X, label_batch, plot=None):
         '''
-        Compare the embeddings of DMT-EV, UMAP, TSNE and PCA
+        Compare the embeddings of DMT-DV, UMAP, TSNE and PCA
         Parameters
         ----------
         X : np.ndarray or torch.Tensor
@@ -147,14 +189,14 @@ class DMT(BaseEstimator):
         Returns
         -------
         tuple
-            The embeddings of DMT-EV, UMAP, TSNE and PCA
+            The embeddings of DMT-DV, UMAP, TSNE and PCA
         '''
                 
         if not isinstance(X, np.ndarray) and not isinstance(X, torch.Tensor):
             raise ValueError("X must be a numpy array or a torch tensor")
 
-        logging.debug("Start DMT-EV")
-        dmt_embedding = self.fit_transform(X)
+        logging.debug("Start DMT-DV")
+        dmt_embedding = self.fit_transform(X, label_batch)
         logging.debug("Start UMAP")
         umap_embedding = umap.UMAP().fit_transform(X)
         logging.debug("Start TSNE")

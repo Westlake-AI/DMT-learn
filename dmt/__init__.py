@@ -1,4 +1,4 @@
-from .dmt_ import DMT
+from .dmt_ import DMT_DV
 import os
 import sys
 

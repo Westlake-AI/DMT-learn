@@ -3,8 +3,7 @@ from functools import reduce
 import numpy as np
 from numpy import ndarray
 import os
-# from pytorch_lightning import LightningModule
-from lightning import LightningModule
+from pytorch_lightning import LightningModule
 import torch
 from torch import nn, device
 from torch.optim.lr_scheduler import StepLR
@@ -13,41 +12,43 @@ from torchvision import transforms
 from time import sleep
 import logging
 
-# import Loss.dmt_loss_aug as dmt_loss_aug1
 from .aug.aug import aug_near_feautee_change, aug_near_mix, aug_randn
 from .dataloader import data_base
-from .dataloader.data_base import CommonDataset
+from .dataloader.data_base import SingleCellDataset
+from .loss import dmt_loss as dmt_loss_aug
 from .model.model import NN_FCBNRL_MM
-from .Loss import dmt_loss_aug2 as dmt_loss_aug
 from .utils_ import gpu2np
+from .manifolds.hyperbolic_project import ToEuclidean, ToPoincare, ToLorentz
 
 
 class LitPatNN(LightningModule):
     def __init__(
         self,
-        dataname:str="Common",
+        dataname:str="SingleCell",
         device:device=device('cpu'),
         # model param
         nu:float=1e-2,
         num_fea_aim:int=-1,
         K:int=5,
-        Uniform_t:float=1,  # 0.3
-        lr:float=1e-3,
+        Uniform_t:float=0.5,  # 0.3
+        lr:float=5e-4,
         # trainer param
-        batch_size:int=1000,
-        epochs:int=1500,
-        log_interval:int=300,
+        batch_size:int=2000,
+        epochs:int=1500, # 1500
+        log_interval:int=100, # 300
         # set param
         metric:str="euclidean",
+        manifold:str='Euclidean',
         detaalpha:float=1.001,
         l2alpha:float=10,
-        num_fea_per_pat:int=80,  # 0.5
+        num_fea_per_pat:int=100,  # 0.5
         Bernoulli_t:float=-1,
         Normal_t:float=-1,
         # train param
-        NetworkStructure_1:list=[-1, 200] + [200] * 5,
-        NetworkStructure_2:list=[-1, 500, 80],
+        NetworkStructure_1:list=[-1, 500, 300],
+        NetworkStructure_2:list=[-1, 300, 100],
         augNearRate:float=1000,
+        batchRate:float=100,
         ):
 
         super().__init__()
@@ -70,6 +71,7 @@ class LitPatNN(LightningModule):
         self.lr = lr
         self.my_device = device
 
+        self.num_latent_dim = 2
         self.t = 0.1
         self.alpha = None
         self.stop = False
@@ -78,7 +80,19 @@ class LitPatNN(LightningModule):
         self.aim_cluster = None
         self.importance = None
 
-        
+        # choose manifold
+        self.rie_pro_input = ToEuclidean()
+        if manifold == 'Euclidean':
+            self.metric_e = 'euclidean'
+            self.rie_pro_latent = ToEuclidean()
+        if manifold == 'PoincareBall':
+            self.metric_e = 'poin_dist_mobiusm_v2'
+            self.rie_pro_latent = ToPoincare()
+        if manifold == 'Hyperboloid':
+            self.num_latent_dim += 1
+            self.metric_e = 'lor_dist_v2'
+            self.rie_pro_latent = ToLorentz()
+
         self.uselabel = False  # only unsupervised for now
         self.mse = torch.nn.CrossEntropyLoss()
         self.loss_eye = torch.eye(batch_size).to(self.my_device)
@@ -86,6 +100,7 @@ class LitPatNN(LightningModule):
             v_input=100,
             metric=metric,
             augNearRate=augNearRate,
+            batchRate=batchRate,
             device=self.my_device,
         ).to(self.my_device)
         
@@ -97,15 +112,20 @@ class LitPatNN(LightningModule):
             raise ValueError("Data not loaded")
 
 
-    def adapt(self, data_path:str|ndarray=None):
-        dataset_f = getattr(data_base, "CSVDataset") if isinstance(data_path, str) else CommonDataset
-        if self.dataname == "Common":
+    def adapt(self, data_path:str|ndarray=None, label_batch:ndarray=None):
+        dataset_f = getattr(data_base, "CSVDataset") if isinstance(data_path, str) else SingleCellDataset
+        if self.dataname == "SingleCell":
             self.data_train = dataset_f(
-                data=data_path,
+                data_name=self.dataname,
+                raw_data=data_path,
+                label_batch=label_batch,
             )
-            self.data_test = dataset_f(
-                data=data_path,
-            )
+            # self.data_test = dataset_f(
+            #     data_name=self.dataname,
+            #     raw_data=data_path,
+            #     label_batch=label_batch,
+            # )
+            self.data_test = self.data_train
 
         else:
             if not os.path.exists(data_path):
@@ -157,35 +177,21 @@ class LitPatNN(LightningModule):
             self.fea_num = self.fea_num * self.data_train.data.shape[i + 1]
 
         logging.debug(f"fea_num: {self.fea_num}")
-        self.PM_root = nn.Linear(self.fea_num, 1)
-        self.PM_root.weight.data = torch.ones_like(self.PM_root.weight.data) / 5
         
         self.model_pat, self.model_b = self.InitNetworkMLP(
-            # self.model_pat, self.model_b = self.InitNetworkMLP_OLD(
             self.NetworkStructure_1,
             self.NetworkStructure_2,
         )
 
 
     def forward_fea(self, x):
-        # import pdb; pdb.set_trace()
-        # lat = torch.zeros(x.shape).to(x.device)
-        self.mask = self.PM_root.weight.reshape(-1) > 0.1
-        # for i in range(self.hparams.num_pat):
-        # if self.alpha is not None:
-        #     # logging.debug('x.shape', x.shape)
-        #     # logging.debug('self.PM_root.weight', self.PM_root.weight.shape)
-        #     lat = x * ((self.PM_root.weight.reshape(-1)) * self.mask)
-        # else:
-        #     lat = x * ((self.PM_root.weight.reshape(-1)) * self.mask).detach()
         lat = x
         lat1 = self.model_pat(lat)
         lat3 = lat1
         for i, m in enumerate(self.model_b):
             lat3 = m(lat3)
         return lat1, lat1, lat3
-
-
+    
     def forward(self, x):
         return self.forward_fea(x)
 
@@ -201,48 +207,38 @@ class LitPatNN(LightningModule):
         return torch.exp(-1 * dis).reshape(-1)
 
     def training_step(self, batch, batch_idx):
-        index = batch.to(self.device)
-        # augmentation
-        data1 = self.data_train.data[index]
-        data2 = self.augmentation_warper(index, data1)
+        data, batchhot, index = batch
+        data1 = data
+        batchhot1 = batchhot
+        # data1 = self.data_train.data[index]
+        # batchhot1 = self.data_train.batchhot[index]
+        data2, batchhot2 = self.augmentation_warper(index, data1, batchhot1)
         data = torch.cat([data1, data2])
         data = data.reshape(data.shape[0], -1)
+        batchhot = torch.cat((batchhot, batchhot2))
 
         # forward
         pat, mid, lat = self(data)
+
+        # projection
+        lat = self.rie_pro_latent(lat)
 
         # loss
         loss_topo = self.Loss(
             input_data=mid.reshape(mid.shape[0], -1),
             latent_data=lat.reshape(lat.shape[0], -1),
+            batchhot = batchhot,
             v_latent=self.nu,
-            eye=self.loss_eye,
-            metric="euclidean",
-            # metric='cossim',
+            metric=self.metric_e,
         )
 
-        loss_l2 = 0
-        if self.current_epoch >= self.log_interval and batch_idx == 0:
-            if self.alpha is None:
-                # logging.debug("--->")
-                self.alpha = loss_topo.detach().item() / (
-                    self.Cal_Sparse_loss(
-                        self.PM_root.weight.reshape(-1),
-                    ).detach()
-                    * self.l2alpha
-                )
-
-            N_Feature = np.sum(gpu2np(self.mask) > 0)
-            if N_Feature > self.num_fea_aim:
-                loss_l2 = self.Cal_Sparse_loss(self.PM_root.weight.reshape(-1))
-                self.alpha = self.alpha * self.detaalpha
-                loss_topo += (loss_l2) * self.alpha
         return loss_topo
 
     def validation_step(self, batch, batch_idx):
+        data, batchhot, index = batch
         # augmentation
         if (self.current_epoch + 1) % self.log_interval == 0:
-            index = batch.to(self.device)
+            index = index.to(self.device)
             data = self.data_train.data[index]
             data = data.reshape(data.shape[0], -1)
             pat, mid, lat = self(data)
@@ -258,37 +254,6 @@ class LitPatNN(LightningModule):
         loss_l2 = torch.abs(PatM).mean()
         return loss_l2
 
-    # def on_validation_epoch_end(self):
-    #     if not self.stop:
-    #         logging.debug(f"es_monitor: {self.current_epoch}")
-    #     else:
-    #         logging.debug(f"es_monitor: 0")
-
-    #     if (self.current_epoch + 1) % self.log_interval == 0:
-    #         logging.debug(f"self.current_epoch: {self.current_epoch}")
-    #         data = np.concatenate([data_item[0] for data_item in outputs])
-    #         mid_old = np.concatenate([data_item[1] for data_item in outputs])
-    #         ins_emb = np.concatenate([data_item[2] for data_item in outputs])
-    #         index = np.concatenate([data_item[3] for data_item in outputs])
-
-    #         self.data = data
-    #         self.mid_old = mid_old
-    #         self.ins_emb = ins_emb
-    #         self.index = index
-
-    #         N_link = np.sum(gpu2np(self.mask))
-    #         feature_use_bool = gpu2np(self.mask) > 0
-    #         N_Feature = np.sum(feature_use_bool)
-
-    #         # import pdb; pdb.set_trace()
-              
-    #         if N_Feature <= self.num_fea_aim:
-    #             self.stop = True
-    #         else:
-    #             self.stop = False
-
-    #     else:
-    #         logging.debug(f"SVC: 0")
 
     def test_step(self, batch, batch_idx):
         # Here we just reuse the validation_step for testing
@@ -333,7 +298,7 @@ class LitPatNN(LightningModule):
             + NetworkStructure_1[1:]
             + [num_fea_per_pat]
         )
-        struc_model_b = NetworkStructure_2 + [2]
+        struc_model_b = NetworkStructure_2 + [self.num_latent_dim]
         struc_model_b[0] = num_fea_per_pat
 
         m_l = []
@@ -361,9 +326,9 @@ class LitPatNN(LightningModule):
         model_b = model_b.to(self.my_device)
         return model_pat, model_b
 
-    def augmentation_warper(self, index, data1):
+    def augmentation_warper(self, index, data1, batchhot1):
         if len(data1.shape) == 2:
-            return self.augmentation(index, data1)
+            return self.augmentation(index, data1, batchhot1)
         else:
             return self.augmentation_img(index, data1)
 
@@ -375,10 +340,11 @@ class LitPatNN(LightningModule):
         #         )
         return self.transforms(data.permute(0, 3, 1, 2)).permute(0, 2, 3, 1)
 
-    def augmentation(self, index, data1):
+    def augmentation(self, index, data1, batchhot1):
         data2_list = []
+        batchhot2_list = []
         if self.Uniform_t > 0:
-            data_new = aug_near_mix(
+            data_new, batch_hot_new = aug_near_mix(
                 index,
                 self.data_train,
                 k=self.K,
@@ -386,6 +352,7 @@ class LitPatNN(LightningModule):
                 device=self.device,
             )
             data2_list.append(data_new)
+            batchhot2_list.append(batch_hot_new)
         if self.Bernoulli_t > 0:
             data_new = aug_near_feautee_change(
                 index,
@@ -415,13 +382,18 @@ class LitPatNN(LightningModule):
             < 0
         ):
             data_new = data1
+            batchhot_new = batchhot1
             data2_list.append(data_new)
+            batchhot2_list.append(batchhot_new)
 
         if len(data2_list) == 1:
             data2 = data2_list[0]
+            batchhot2 = batchhot2_list[0]
         elif len(data2_list) == 2:
             data2 = (data2_list[0] + data2_list[1]) / 2
+            batchhot2 = (batchhot2_list[0] + batchhot2_list[1]) / 2
         elif len(data2_list) == 3:
             data2 = (data2_list[0] + data2_list[1] + data2_list[2]) / 3
+            batchhot2 = (batchhot2_list[0] + batchhot2_list[1] + batchhot2_list[2]) / 3
 
-        return data2
+        return data2, batchhot2

@@ -3,13 +3,14 @@ requires = ["setuptools>=58.2.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = 'dmt-learn'
+name = 'dmtdv-learn'
 dynamic = ["version"]
-description = 'An Explainable Deep Network for Dimension Reduction (EVNet)'
+description = 'Deep Neural Network for Single Cell Visualization and Batch Correction (DV)'
 readme = {file = "README.md", content-type = "text/markdown"}
 license = {file = "LICENSE.txt"}
 requires-python = ">=3.10"
 authors = [
+  { name="xuyongjie", email="xuyongjie@westlake.edu.cn" },
   { name="zangzelin", email="zangzelin@westlake.edu.cn" },
 ]
 maintainers = [
@@ -47,7 +48,7 @@ dependencies = [
 eval = ['pandas', 'plotly']
 
 [dynamic]
-keywords = ["dimension reduction manifold deep network"]
+keywords = ["dimension reduction batch correction single cell"]
 
 [tool.setuptools.dynamic]
 version = { attr = "dmt.__version__" }

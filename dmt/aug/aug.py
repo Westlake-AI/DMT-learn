@@ -7,15 +7,16 @@ def aug_near_mix(index, dataset, k=10, random_t=0.1, device="cuda"):
         + torch.randint(low=1, high=k, size=(index.shape[0],))
     ).to(device)
     
-    # import pdb; pdb.set_trace()
+    dataset.to_device(r.device)
     random_select_near_index = (
         dataset.neighbors_index[index][:, :k].reshape((-1,))[r].long()
     )
     random_select_near_data2 = dataset.data[random_select_near_index]
+    random_select_near_data_batch_hot_2 = dataset.batchhot[random_select_near_index]
     random_rate = torch.rand(size=(index.shape[0], 1)).to(device) * random_t
-    return (
-        random_rate * random_select_near_data2 + (1 - random_rate) * dataset.data[index]
-    )
+    new_data = random_rate * random_select_near_data2 + (1 - random_rate) * dataset.data[index]
+    new_batch_hot = random_rate*random_select_near_data_batch_hot_2 + (1-random_rate)*dataset.batchhot[index.cpu()]
+    return (new_data, new_batch_hot)
 
 
 def aug_near_feautee_change(index, dataset, k=10, t=0.99, device="cuda"):
