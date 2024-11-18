@@ -112,4 +112,4 @@ The code is in [example](https://github.com/zangzelin/example_dmtlearn.git).
 
 ## License
 
-EVNet is released under the MIT license.
+DMT-EV is released under the MIT license.
