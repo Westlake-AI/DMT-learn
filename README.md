@@ -89,6 +89,10 @@ The code is in [example](https://github.com/zangzelin/example_dmtlearn.git).
 
 ![20News dataset](example/pic/20News.png)
 
+### PBMC Dataset
+
+![PBMC dataset](example/pic/pbmc.png)
+
 
 ## Cite the paper
 

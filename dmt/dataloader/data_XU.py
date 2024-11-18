@@ -40,8 +40,10 @@ class CSVDataset(DigitsDataset):
         self.def_fea_aim = 64
         self.data = data
         self.label = label
-        # self.train_val_split(data, label, train, split_int=5)
-        self.graphwithpca = False
+        if data.shape[1] > 50:
+            self.graphwithpca = True
+        else:
+            self.graphwithpca = False
 
 
 class Xu_GutDataset(DigitsDataset):
