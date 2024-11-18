@@ -1,5 +1,5 @@
 
-# DMT: An Explainable Deep Network for Dimension Reduction
+# DMT-EV: An Explainable Deep Network for Dimension Reduction
 
 The code includes the following modules:
 * Training
