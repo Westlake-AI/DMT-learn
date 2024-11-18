@@ -97,11 +97,14 @@ The code is in [example](https://github.com/zangzelin/example_dmtlearn.git).
 ## Cite the paper
 
 ```
-@article{zang2023evnet,
-  title={Evnet: An explainable deep network for dimension reduction},
-  author={Zang, Zelin and Cheng, Shenghui and Lu, Linyan and Xia, Hanchen and Li, Liangyu and Sun, Yaoting and Xu, Yongjie and Shang, Lei and Sun, Baigui and Li, Stan Z},
+@article{zang2024dmt,
+  title={DMT-EV: An Explainable Deep Network for Dimension Reduction},
+  author={Zang, Zelin and Cheng, Shenghui and Xia, Hanchen and Li, Liangyu and Sun, Yaoting and Xu, Yongjie and Shang, Lei and Sun, Baigui and Li, Stan Z},
   journal={IEEE Transactions on Visualization and Computer Graphics},
-  year={2023},
+  volume={30},
+  number={3},
+  pages={1710--1727},
+  year={2024},
   publisher={IEEE}
 }
 ```
